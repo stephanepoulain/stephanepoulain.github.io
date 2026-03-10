@@ -1186,24 +1186,39 @@ details {
 .short-bib {
   line-height: 1.8;
   
+  .title {
+    a {
+      color: var(--global-theme-color);
+      
+      &:hover {
+        color: var(--global-theme-color);
+        text-decoration: underline;
+      }
+    }
+    
+    em {
+      color: var(--global-theme-color);
+      font-style: italic;
+    }
+  }
+  
   .author {
     em {
       font-weight: 500;
       font-style: normal;
-      color: var(--global-theme-color);
     }
   }
   
   .journal {
     em {
-      font-weight: 400;
+      font-weight: 300;
       font-style: italic;
       color: var(--global-text-color);
     }
   }
   
   .year {
-    font-weight: 400;
+    font-weight: 300;
   }
   
   .links {

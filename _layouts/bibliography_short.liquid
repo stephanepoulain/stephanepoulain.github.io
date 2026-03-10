@@ -1,7 +1,15 @@
 <span class="short-bib">
 
   <!-- Title -->
-  <span class="title"><em>{{ entry.title }}</em></span>,
+  <span class="title">
+    {% if entry.doi %}
+      <a href="https://doi.org/{{ entry.doi }}"><em>{{ entry.title }}</em></a>
+    {% elsif entry.html %}
+      <a href="{{ entry.html }}"><em>{{ entry.title }}</em></a>
+    {% else %}
+      <em>{{ entry.title }}</em>
+    {% endif %}
+  </span>,
 
   <!-- Authors -->
   <span class="author">
@@ -67,11 +75,6 @@
 
   <!-- Links -->
   <span class="links">
-    {% if entry.doi %}
-      <a href="https://doi.org/{{ entry.doi }}" class="link">HTML</a>
-    {% elsif entry.html %}
-      <a href="{{ entry.html }}" class="link">HTML</a>
-    {% endif %}
     {% if entry.pdf %}
       <a href="{{ entry.pdf | prepend: '/assets/pdf/' | relative_url }}" class="link">PDF</a>
     {% endif %}

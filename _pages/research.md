@@ -11,8 +11,6 @@ scholar:
   bibliography_item_tag: span
 ---
 
-My research combines theory, experiments, and numerical simulations to understand fundamental problems in fluid mechanics, capillarity, and fluid-structure interactions.
-
 {% details **Elastohydrodynamics and Adhesion** %}
 
 ### Contactless adhesion of vibrating sheets
