@@ -1,6 +1,6 @@
 ---
 layout: about
-title: about
+title: About
 permalink: /
 subtitle:
 
@@ -15,8 +15,18 @@ news: false # includes a list of news items
 selected_papers: false # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
 ---
+I am a physicist and engineer with broad interests spanning fluid and solid mechanics, fluid-structure interactions, and capillarity.
+My research combines table-top experiments, theoretical analysis, and numerical modeling to gain physical insights into complex systems.
 
-I recently completed my PhD at the University of Oslo in April in [Andreas Carlson's group](https://acarlson-uio.github.io/).
-My primary focus was on lubrication flows, where I combined theory and numerics to study the coupling between viscous forces and capillary or elastic systems. I also performed experiments inspired by fog harvesting on the behavior of water droplets on fibers.
+Currently, I am a Postdoctoral Researcher at the [Manchester Center for Nonlinear Dynamics](http://www.mcnd.manchester.ac.uk/) (University of Manchester), working with [Draga Pihler-Puzović](https://personalpages.manchester.ac.uk/staff/draga.pihler-puzovic/) and [Finn Box](https://personalpages.manchester.ac.uk/staff/finn.box/index.html).
 
-Before coming to Oslo, I received a Dipl. Ing. in Aerospace Engineering from ISAE-Supaero, France. I gained research experience through internships, working experimentally with [Sunny Jung](https://sites.google.com/cornell.edu/sunnyjsh) (then at Virginia Tech) on cavitation bubbles and with [Lucas Brandt](https://www.mech.kth.se/~luca/index.php) and [Gaetano Sardina](https://www.chalmers.se/en/persons/sardina/) at KTH Stockholm simulating numerically the growth of rain droplets in clouds. I then pursued a Master’s Degree in Civil & Environmental Engineering at MIT, where I studied experimentally surface bubbles in the context of (bio)aerosol generation.
+I received my PhD from the University of Oslo, working with [Andreas Carlson](https://acarlson-uio.github.io/) on the coupling between viscous flows and capillary or elastic interfaces. I continued as Postdoctoral Researcher in the same group, studying vibrating elastic sheets as contactless suction cups. Before my PhD, I was trained as an Aerospace Engineer at ISAE-Supaero, France and completed an MSc in Civil & Environmental Engineering at MIT where I worked on surface bubbles.
+
+<hr>
+- <small> Since 2026: Postdoctoral Researcher, Physics & Astronomy, University of Manchester   <span style="opacity:0.8;">🇬🇧</span> </small>
+- <small> 2024-25: Postdoctoral Researcher, Mathematics, University of Oslo <span style="opacity:0.8;">🇳🇴</span> </small>
+- <small> 2020-24: PhD, Faculty of Mathematics & Natural Sciences, University of Oslo   <span style="opacity:0.8;">🇳🇴</span> </small>
+- <small> 2017-19: MSc, Civil & Environmental Engineering, MIT   <span style="opacity:0.8;">🇺🇸</span> </small>
+- <small> 2012-16: Diplôme d'Ingénieur, Aerospace Engineering, ISAE-Supaéro   <span style="opacity:0.8;">🇫🇷</span> </small>
+
+<hr>

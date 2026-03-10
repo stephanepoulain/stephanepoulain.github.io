@@ -382,7 +382,7 @@ ul.task-list input[type="checkbox"] {
   text-align: center;
 
   .contact-icons {
-    font-size: 4rem;
+    font-size: 2rem;
 
     a {
       i::before {
@@ -738,8 +738,10 @@ footer.sticky-bottom {
         }
 
         > em {
-          border-bottom: 1px solid;
+          border-bottom: 1px solid var(--global-theme-color);
           font-style: normal;
+          font-weight: 500;
+          color: var(--global-theme-color);
         }
 
         > span.more-authors {
@@ -751,6 +753,16 @@ footer.sticky-bottom {
             color: var(--global-text-color);
             border-bottom: 1px dashed var(--global-text-color);
           }
+        }
+      }
+
+      .periodical {
+        font-weight: 400;
+        
+        em {
+          font-weight: 400;
+          font-style: italic;
+          color: var(--global-text-color);
         }
       }
 
@@ -1117,4 +1129,98 @@ swiper-container {
   --swiper-navigation-color: var(--global-theme-color);
   --swiper-pagination-color: var(--global-theme-color);
   --swiper-pagination-bullet-inactive-color: var(--global-text-color);
+}
+
+// Collapsible sections for research page
+details {
+  border: 1px solid var(--global-divider-color);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: var(--global-bg-color);
+  transition: all 0.3s ease;
+
+  &[open] {
+    border-color: var(--global-theme-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  summary {
+    cursor: pointer;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--global-theme-color);
+    padding: 0.5rem 0;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      content: '▶';
+      display: inline-block;
+      margin-right: 0.5rem;
+      transition: transform 0.3s ease;
+      font-size: 1rem;
+    }
+
+    &:hover {
+      color: var(--global-hover-color);
+    }
+  }
+
+  &[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  > *:not(summary) {
+    margin-top: 1rem;
+  }
+}
+
+// Short bibliography style for research page
+.short-bib {
+  line-height: 1.8;
+  
+  .author {
+    em {
+      font-weight: 500;
+      font-style: normal;
+      color: var(--global-theme-color);
+    }
+  }
+  
+  .journal {
+    em {
+      font-weight: 400;
+      font-style: italic;
+      color: var(--global-text-color);
+    }
+  }
+  
+  .year {
+    font-weight: 400;
+  }
+  
+  .links {
+    margin-left: 0.5rem;
+    
+    a.link {
+      margin-left: 0.3rem;
+      padding: 0.1rem 0.4rem;
+      background-color: var(--global-code-bg-color);
+      border-radius: 3px;
+      font-size: 0.85rem;
+      
+      &:hover {
+        background-color: var(--global-theme-color);
+        color: white;
+        text-decoration: none;
+      }
+    }
+  }
 }

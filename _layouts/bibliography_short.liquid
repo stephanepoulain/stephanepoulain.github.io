@@ -1,0 +1,79 @@
+<span class="short-bib">
+
+  <!-- Title -->
+  <span class="title"><em>{{ entry.title }}</em></span>,
+
+  <!-- Authors -->
+  <span class="author">
+    {% assign author_array_size = entry.author_array | size %}
+    {% assign author_array_limit = author_array_size %}
+    {% if site.max_author_limit and author_array_size > site.max_author_limit %}
+      {% assign author_array_limit = site.max_author_limit %}
+    {% endif %}
+
+    {%- for author in entry.author_array limit: author_array_limit -%}
+      {% assign author_is_self = false %}
+      {%- assign author_last_name = author.last | remove: '¶' | remove: '&' | remove: '*' | remove: '†' | remove: '^' -%}
+      {% if site.scholar.last_name contains author_last_name %}
+        {% if site.scholar.first_name contains author.first %}
+          {% assign author_is_self = true %}
+        {% endif %}
+      {%- endif -%}
+
+      {% assign coauthor_url = null %}
+      {%- assign clean_last_name = author_last_name | downcase | remove_accents -%}
+      {% if site.data.coauthors[clean_last_name] %}
+        {%- for coauthor in site.data.coauthors[clean_last_name] -%}
+          {% if coauthor.firstname contains author.first %}
+            {%- assign coauthor_url = coauthor.url -%}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      {% if forloop.length > 1 %}
+        {% if forloop.first == false %}, {% endif %}
+        {% if forloop.last and author_array_limit == author_array_size %}and {% endif %}
+      {% endif %}
+
+      {% if author_is_self %}
+        <em>{{ author.first }} {{ author.last }}</em>
+      {% elsif coauthor_url %}
+        <a href="{{ coauthor_url }}">{{ author.first }} {{ author.last }}</a>
+      {% else %}
+        {{ author.first }} {{ author.last }}
+      {% endif %}
+    {% endfor %}
+
+    {%- assign more_authors = author_array_size | minus: author_array_limit -%}
+    {% if more_authors > 0 %}
+      , and {{ more_authors }} more
+    {% endif %}
+  </span>,
+
+  <!-- Journal + Year -->
+  {% assign proceedings = 'inproceedings,incollection' | split: ',' %}
+  {% assign thesis = 'thesis,mastersthesis,phdthesis' | split: ',' %}
+  {% if entry.type == 'article' %}
+    <span class="journal"><em>{{ entry.journal }}</em></span>,
+  {% elsif proceedings contains entry.type %}
+    <span class="journal"><em>In {{ entry.booktitle }}</em></span>,
+  {% elsif thesis contains entry.type %}
+    <span class="journal"><em>{{ entry.school }}</em></span>,
+  {% endif %}
+  {% if entry.year %}
+    <span class="year">{{ entry.year }}</span>
+  {% endif %}
+
+  <!-- Links -->
+  <span class="links">
+    {% if entry.doi %}
+      <a href="https://doi.org/{{ entry.doi }}" class="link">HTML</a>
+    {% elsif entry.html %}
+      <a href="{{ entry.html }}" class="link">HTML</a>
+    {% endif %}
+    {% if entry.pdf %}
+      <a href="{{ entry.pdf | prepend: '/assets/pdf/' | relative_url }}" class="link">PDF</a>
+    {% endif %}
+  </span>
+</span>
