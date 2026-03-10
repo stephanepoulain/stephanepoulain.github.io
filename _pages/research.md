@@ -17,7 +17,7 @@ scholar:
 
 A vibrating elastic sheet can adhere to surfaces to become a seemingly contactless suction cup. [David Colasante](https://www.youtube.com/watch?v=FiigvkedYRs) and [Weston-Dawkes et al.](https://advanced-onlinelibrary-wiley-com.ezproxy.uio.no/doi/full/10.1002/aisy.202100001) showed that such vibrating disks can lift objects up to tens of kilograms.
 
-<img src="/assets/img/research/lubribot_num1.gif" width="50%">
+<video src="/assets/img/research/lubribot_num1.webm" width="50%" loop muted playsinline></video>
 
 Using numerical simulations and theoretical modeling, we have shown how fluid-structure interactions rectify periodic vibrations to produce adhesive forces. The effect originates from the coupling between viscous fluid flow and bending deformations of the sheet, and can be modulated by inertial or compressibility effects. Beyond suction cups, this is relevant for squeeze film and acoustic levitation, and locomotion.
 
@@ -40,7 +40,7 @@ We studied the dynamics of adhesion of an elastic sheet, modeling the interplay 
 
 Upon bursting, surface bubbles transfer chemicals and pathogens from water to the atmosphere. We investigated the thinning dynamics of bubbles, exploring the interplay between capillary drainage, Marangoni flows, and evaporation in pure water, salt water, soapy water, and bacteria-contaminated water. We also proposed a mechanism that rationalizes their burst.
 
-<img src="/assets/img/research/bubble_burst.gif" width="48%"> <img src="/assets/img/research/bubble_mixing.gif" width="40%">
+<video src="/assets/img/research/bubble_burst.webm" width="48%" loop muted playsinline></video> <video src="/assets/img/research/bubble_mixing.webm" width="40%" loop muted playsinline></video>
 
 We studied the fragmentation of bubbles into droplets, which, as they dry, become condensation nuclei on which clouds can form. Using simulations of turbulent flows, we investigated how turbulence affects the growth and size distribution of droplets.
 

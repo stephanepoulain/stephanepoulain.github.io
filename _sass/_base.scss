@@ -1239,3 +1239,41 @@ details {
     }
   }
 }
+
+// Video player (click-to-play)
+.video-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  line-height: 0;
+  max-width: 100%;
+  
+  video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.video-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--global-theme-color);
+  pointer-events: none;
+  transition: all 0.3s ease;
+  
+  .video-wrapper:hover & {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
