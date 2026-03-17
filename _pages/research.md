@@ -18,7 +18,15 @@ scholar:
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
-    margin-bottom: 3rem;
+    margin-bottom: 1rem;
+    max-width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .research-cards-divider {
+    border: none;
+    border-top: 1px solid var(--global-divider-color);
+    margin: 2rem 0 2.5rem;
   }
   .research-card {
     background: var(--global-card-bg-color);
@@ -35,16 +43,16 @@ scholar:
   }
   .research-card img {
     width: 100%;
-    height: 150px;
+    height: 120px;
     object-fit: cover;
     display: block;
-    filter: brightness(0.85);
     transition: filter 0.2s ease;
   }
-  .research-card:hover img { filter: brightness(1); }
+  .research-card:hover img { filter: brightness(1.05); }
   .research-card-body {
     padding: 1rem 1.2rem 1.2rem;
     border-top: 3px solid var(--global-theme-color);
+    text-align: center;
   }
   .research-card-body p {
     font-size: 1rem;
@@ -53,12 +61,7 @@ scholar:
     margin: 0;
     line-height: 1.4;
   }
-  .research-card-body span {
-    margin-top: 0.5rem;
-    display: block;
-    font-size: 0.8rem;
-    color: var(--global-theme-color);
-  }
+  .research-card-body span { display: none; }
 
   details {
     border: none !important;
@@ -98,6 +101,8 @@ scholar:
     </div>
   </a>
 </div>
+
+<hr class="research-cards-divider">
 
 <script>
 function openSection(id) {
@@ -181,8 +186,8 @@ We developed a three-phase lubrication model to understand how droplets settle o
 
 We experimentally studied the dynamics of water droplets on tilted, vertically oscillating fibers. Droplets exhibit different modes—harmonic pumping, subharmonic pumping, rocking, and swinging—depending on the oscillation frequency and amplitude, significantly affecting their sliding speed.
 
-<div style="display: flex; align-items: center; gap: 1.5rem; margin: 7rem auto 1rem; width: 80%;">
-  <video src="/assets/img/research/subharmo.webm" width="70%" loop muted playsinline style="transform: rotate(27deg); margin: 1.5rem 0;"></video>
+<div style="display: flex; align-items: center; gap: 1.5rem; margin: 4rem auto 1rem; width: 80%;">
+  <video src="/assets/img/research/subharmo.webm" width="50%" loop muted playsinline style="transform: rotate(27deg); margin: 1.5rem 0;"></video>
   <p style="flex: 1; margin-top: -4rem; font-size: 0.85em; position: relative; z-index: 1;"><em style="color: var(--global-text-color-light);">A water droplet sliding on a fiber vibrating at 90 Hz exhibits a subharmonic response and sheds satellite droplets.</em></p>
 </div>
 
