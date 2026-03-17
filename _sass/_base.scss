@@ -1134,20 +1134,28 @@ swiper-container {
 // Collapsible sections for research page
 details {
   border: 1px solid var(--global-divider-color);
+  border-left: 4px solid var(--global-theme-color);
   border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.5rem;
   background-color: var(--global-bg-color);
   transition: all 0.3s ease;
 
+  &:not([open]):hover {
+    background-color: var(--global-code-bg-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
   &[open] {
     border-color: var(--global-theme-color);
+    border-left: 4px solid var(--global-theme-color);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   summary {
     cursor: pointer;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 600;
     color: var(--global-theme-color);
     padding: 0.5rem 0;
@@ -1155,7 +1163,7 @@ details {
     list-style: none;
     display: flex;
     align-items: center;
-    
+
     &::-webkit-details-marker {
       display: none;
     }
@@ -1163,9 +1171,9 @@ details {
     &::before {
       content: '▶';
       display: inline-block;
-      margin-right: 0.5rem;
+      margin-right: 0.75rem;
       transition: transform 0.3s ease;
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 
     &:hover {

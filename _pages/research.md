@@ -12,11 +12,102 @@ scholar:
 ---
 
 <style>
-  .container {
-    max-width: 1200px !important;
+  .container { max-width: 1200px !important; }
+
+  .research-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
   }
+  .research-card {
+    background: var(--global-card-bg-color);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--global-divider-color);
+    text-decoration: none !important;
+  }
+  .research-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  .research-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.85);
+    transition: filter 0.2s ease;
+  }
+  .research-card:hover img { filter: brightness(1); }
+  .research-card-body {
+    padding: 1rem 1.2rem 1.2rem;
+    border-top: 3px solid var(--global-theme-color);
+  }
+  .research-card-body p {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--global-text-color) !important;
+    margin: 0;
+    line-height: 1.4;
+  }
+  .research-card-body span {
+    margin-top: 0.5rem;
+    display: block;
+    font-size: 0.8rem;
+    color: var(--global-theme-color);
+  }
+
+  details {
+    border: none !important;
+    border-left: 5px solid var(--global-theme-color) !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding: 1.5rem 2rem !important;
+    margin-bottom: 1.5rem !important;
+    background-color: var(--global-code-bg-color) !important;
+  }
+  details:not([open]):hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+    transform: translateY(-2px) !important;
+  }
+  details summary { font-size: 1.6rem !important; }
 </style>
 
+<div class="research-cards">
+  <a class="research-card" onclick="openSection('section-elasto'); return false;" href="#section-elasto">
+    <img src="/assets/img/research/lubribot_frame.png" alt="Elastohydrodynamics">
+    <div class="research-card-body">
+      <p>Elastohydrodynamics and Adhesion</p>
+      <span>▶ explore</span>
+    </div>
+  </a>
+  <a class="research-card" onclick="openSection('section-bubbles'); return false;" href="#section-bubbles">
+    <img src="/assets/img/publication_preview/Poulain2018_bubble.png" alt="Surface Bubbles">
+    <div class="research-card-body">
+      <p>Surface Bubbles and Aerosols</p>
+      <span>▶ explore</span>
+    </div>
+  </a>
+  <a class="research-card" onclick="openSection('section-droplets'); return false;" href="#section-droplets">
+    <img src="/assets/img/publication_preview/Poulain2023_vibrations.png" alt="Droplets">
+    <div class="research-card-body">
+      <p>Droplets and Capillarity</p>
+      <span>▶ explore</span>
+    </div>
+  </a>
+</div>
+
+<script>
+function openSection(id) {
+  var el = document.getElementById(id).querySelector('details');
+  el.open = true;
+  document.getElementById(id).scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+</script>
+
+<div id="section-elasto">
 {% details **Elastohydrodynamics and Adhesion** %}
 
 ### Contactless adhesion of vibrating sheets
@@ -44,7 +135,9 @@ We studied the dynamics of adhesion of an elastic sheet, modeling the interplay 
 - {% bibliography --query @*[key=Poulain2022_sheets] %}
 
 {% enddetails %}
+</div>
 
+<div id="section-bubbles">
 {% details **Surface Bubbles and Aerosols** %}
 
 Upon bursting, surface bubbles transfer chemicals and pathogens from water to the atmosphere. We investigated the thinning dynamics of bubbles, exploring the interplay between capillary drainage, Marangoni flows, and evaporation in pure water, salt water, soapy water, and bacteria-contaminated water. We also proposed a mechanism that rationalizes their burst.
@@ -70,7 +163,9 @@ We studied the fragmentation of bubbles into droplets, which, as they dry, becom
 - {% bibliography --query @*[key=Wang2018_rim] %}
 
 {% enddetails %}
+</div>
 
+<div id="section-droplets">
 {% details **Droplets and Capillarity** %}
 
 ### Droplet impact on soft substrates
@@ -110,3 +205,4 @@ We characterized how spherical particles respond to cavitation bubbles in fluids
 - {% bibliography --query @*[key=Poulain2015_cavitation] %}
 
 {% enddetails %}
+</div>
