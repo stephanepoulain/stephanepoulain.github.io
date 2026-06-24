@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#cdc9c0;border-radius:8px;border:3px solid #f3f1ec}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#f3f1ec;font-family:'Inter Tight',system-ui,sans-serif;color:#2b2823;padding:32px 28px 80px">
+  <div style="max-width:920px;margin:0 auto">
+
+    <div style="margin-bottom:6px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a857a;letter-spacing:0.04em">STL → DECIMATED GLB</span>
+      <h1 style="font-size:26px;font-weight:700;letter-spacing:-0.02em;margin:2px 0 0">Vertebra Optimizer</h1>
+    </div>
+    <p style="margin:0 0 24px;font-size:14.5px;line-height:1.55;color:#6b665c;max-width:640px">
+      Drop your micro-CT STL files here. Each mesh is welded, simplified to your triangle budget with meshoptimizer, and exported as a compact <b>.glb</b>. Everything runs locally in your browser — nothing is uploaded.
+    </p>
+
+    <!-- budget controls -->
+    <div style="background:#fff;border:1px solid #e4e0d7;border-radius:14px;padding:20px 22px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#3d3a33">Triangle budget per vertebra</div>
+          <div style="font-size:12px;color:#8a857a;margin-top:2px">Lower = smaller files & faster, especially for spine view & mobile.</div>
+        </div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;color:#b5532a;white-space:nowrap">{{ targetLabel }}</div>
+      </div>
+      <input type="range" min="5000" max="120000" step="1000" value="{{ target }}" onInput="{{ onTarget }}" style="width:100%;accent-color:#b5532a;height:4px;cursor:pointer">
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <sc-for list="{{ presets }}" as="p" hint-placeholder-count="3">
+          <button onClick="{{ p.fn }}" style="font-family:'Inter Tight',sans-serif;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid {{ p.border }};background:{{ p.bg }};color:{{ p.fg }};cursor:pointer">{{ p.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- dropzone -->
+    <label onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:38px 20px;border-radius:14px;border:2px dashed {{ dzBorder }};background:{{ dzBg }};cursor:pointer;transition:background .15s,border-color .15s;text-align:center">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#b5532a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5l5 5"/><path d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2"/></svg>
+      <div style="font-size:15px;font-weight:600">Drop STL files here, or click to browse</div>
+      <div style="font-size:12.5px;color:#8a857a">Batch-select all 66 at once. .stl only.</div>
+      <input type="file" accept=".stl" multiple onChange="{{ onPick }}" style="display:none">
+    </label>
+
+    <!-- actions -->
+    <div style="display:flex;align-items:center;gap:12px;margin:20px 0 14px;flex-wrap:wrap;min-height:20px">
+      <sc-if value="{{ hasFiles }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ downloadAll }}" style="font-family:'Inter Tight',sans-serif;font-size:13px;font-weight:600;padding:10px 18px;border-radius:10px;border:none;background:#b5532a;color:#fff;cursor:pointer;opacity:{{ zipOpacity }}">{{ downloadAllLabel }}</button>
+        <button onClick="{{ clearAll }}" style="font-family:'Inter Tight',sans-serif;font-size:13px;font-weight:600;padding:10px 18px;border-radius:10px;border:1px solid #e4e0d7;background:#fff;color:#6b665c;cursor:pointer">Clear</button>
+        <span style="font-size:13px;color:#8a857a;font-family:'IBM Plex Mono',monospace">{{ summaryLabel }}</span>
+      </sc-if>
+    </div>
+
+    <!-- file list -->
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ rows }}" as="f" hint-placeholder-count="0">
+        <div style="display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #e4e0d7;border-radius:11px;padding:12px 16px">
+          <div style="width:8px;height:8px;border-radius:50%;background:{{ f.dot }};flex:none"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</div>
+            <div style="font-size:11.5px;color:#8a857a;font-family:'IBM Plex Mono',monospace;margin-top:2px">{{ f.detail }}</div>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:{{ f.statusColor }};white-space:nowrap">{{ f.status }}</div>
+          <sc-if value="{{ f.canDownload }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ f.download }}" style="flex:none;font-family:'Inter Tight',sans-serif;font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid #e4e0d7;background:#faf9f6;color:#3d3a33;cursor:pointer">GLB</button>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { target: 30000, files: [], dz: false, processing: false, libs: null };
+
+  componentDidMount() { this.loadLibs(); }
+
+  async loadLibs() {
+    const THREE = await import('three');
+    const { STLLoader } = await import('three/addons/loaders/STLLoader.js');
+    const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');
+    const { mergeVertices } = await import('three/addons/utils/BufferGeometryUtils.js');
+    const { MeshoptSimplifier } = await import('https://cdn.jsdelivr.net/npm/meshoptimizer@0.20.0/meshopt_simplifier.module.js');
+    await MeshoptSimplifier.ready;
+    this.setState({ libs: { THREE, STLLoader, GLTFExporter, mergeVertices, MeshoptSimplifier } });
+  }
+
+  fmtBytes(b){ if(b==null) return '—'; if(b<1024) return b+' B'; if(b<1048576) return (b/1024).toFixed(0)+' KB'; return (b/1048576).toFixed(2)+' MB'; }
+  fmtK(n){ return n>=1000 ? (n/1000).toFixed(n>=10000?0:1)+'k' : (''+n); }
+
+  addFiles(fileList){
+    const arr = [...fileList].filter(f=>/\.stl$/i.test(f.name));
+    if(!arr.length) return;
+    const existing = new Set(this.state.files.map(f=>f.name));
+    const next = arr.filter(f=>!existing.has(f.name)).map(f=>({
+      name:f.name, file:f, status:'queued', origBytes:f.size, origTris:null, outBytes:null, outTris:null, blob:null, error:null
+    }));
+    this.setState({ files:[...this.state.files, ...next] }, ()=>this.processQueue());
+  }
+
+  async processQueue(){
+    if(this.state.processing || !this.state.libs) return;
+    this.setState({ processing:true });
+    while(true){
+      const idx = this.state.files.findIndex(f=>f.status==='queued');
+      if(idx<0) break;
+      this.patch(idx, { status:'working' });
+      try { await this.processOne(idx); }
+      catch(e){ this.patch(idx, { status:'error', error:String(e&&e.message||e) }); }
+    }
+    this.setState({ processing:false });
+  }
+
+  patch(idx, obj){
+    this.setState(s=>{ const files=s.files.slice(); files[idx]={...files[idx],...obj}; return {files}; });
+  }
+
+  async processOne(idx){
+    const { THREE, STLLoader, GLTFExporter, mergeVertices, MeshoptSimplifier } = this.state.libs;
+    const f = this.state.files[idx];
+    const buf = await f.file.arrayBuffer();
+    let geo = new STLLoader().parse(buf);
+    geo.deleteAttribute('normal');
+    geo = mergeVertices(geo);
+    const pos = geo.getAttribute('position').array;
+    let index = geo.getIndex() ? geo.getIndex().array : null;
+    if(!index){ index = new Uint32Array(pos.length/3); for(let i=0;i<index.length;i++) index[i]=i; }
+    const origTris = index.length/3;
+    const idx32 = index instanceof Uint32Array ? index : new Uint32Array(index);
+    const pos32 = pos instanceof Float32Array ? pos : new Float32Array(pos);
+
+    const targetTris = Math.min(this.state.target, origTris);
+    let outIndex = idx32, outTris = origTris;
+    if(targetTris < origTris){
+      const targetIndexCount = Math.max(3, Math.floor(targetTris)*3);
+      const res = MeshoptSimplifier.simplify(idx32, pos32, 3, targetIndexCount, 0.02, []);
+      outIndex = res[0];
+      outTris = outIndex.length/3;
+    }
+
+    // compact unused vertices
+    const map = new Map(); const np = []; const out = new Uint32Array(outIndex.length);
+    for(let i=0;i<outIndex.length;i++){ const v=outIndex[i]; let nv=map.get(v); if(nv===undefined){ nv=np.length/3; map.set(v,nv); np.push(pos32[v*3],pos32[v*3+1],pos32[v*3+2]); } out[i]=nv; }
+
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(np, 3));
+    g.setIndex(out.length>65535 ? new THREE.Uint32BufferAttribute(out,1) : new THREE.Uint16BufferAttribute(Array.from(out),1));
+    g.computeVertexNormals();
+    const mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color:0xece3d2, roughness:0.7, metalness:0.0 }));
+
+    const glb = await new Promise((resolve,reject)=>{
+      new GLTFExporter().parse(mesh, r=>resolve(r), e=>reject(e), { binary:true, onlyVisible:true });
+    });
+    const blob = new Blob([glb], { type:'model/gltf-binary' });
+    this.patch(idx, { status:'done', origTris, outTris, outBytes:blob.size, blob });
+  }
+
+  outName(name){ return name.replace(/\.stl$/i,'').replace(/_(smoothed|shrinkwrap_smoothed|shrinkwrap)$/i,'') + '.glb'; }
+
+  download(idx){
+    const f=this.state.files[idx]; if(!f.blob) return;
+    const a=document.createElement('a'); a.href=URL.createObjectURL(f.blob); a.download=this.outName(f.name); a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  }
+
+  async downloadAll(){
+    const done = this.state.files.filter(f=>f.status==='done'&&f.blob);
+    if(!done.length || !window.JSZip) return;
+    const zip = new window.JSZip();
+    done.forEach(f=> zip.file(this.outName(f.name), f.blob));
+    const blob = await zip.generateAsync({ type:'blob' });
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='optimized_vertebrae.zip'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  }
+
+  renderVals(){
+    const s = this.state;
+    const setT = v => this.setState({ target:v });
+    const presetDefs = [['Mobile',12000],['Balanced',30000],['High detail',60000]];
+    const presets = presetDefs.map(([label,val])=>{
+      const on = Math.abs(s.target-val) < 1500;
+      return { label, fn:()=>setT(val), bg:on?'#b5532a':'#faf9f6', fg:on?'#fff':'#6b665c', border:on?'#b5532a':'#e4e0d7' };
+    });
+
+    const done = s.files.filter(f=>f.status==='done');
+    const totalOut = done.reduce((a,f)=>a+(f.outBytes||0),0);
+    const totalOrig = s.files.reduce((a,f)=>a+(f.origBytes||0),0);
+
+    const rows = s.files.map((f,i)=>{
+      const dot = f.status==='done'?'#4a9d6b':f.status==='working'?'#d98b2b':f.status==='error'?'#c0492f':'#c9c4ba';
+      let detail = this.fmtBytes(f.origBytes);
+      if(f.status==='done') detail = `${this.fmtBytes(f.origBytes)} → ${this.fmtBytes(f.outBytes)}  ·  ${this.fmtK(f.origTris)} → ${this.fmtK(f.outTris)} tris`;
+      const statusMap = { queued:'queued', working:'optimizing…', done:'done', error:(f.error||'error') };
+      return { name:f.name, detail, dot, status:statusMap[f.status]||f.status,
+        statusColor:f.status==='error'?'#c0492f':f.status==='done'?'#4a9d6b':'#8a857a',
+        canDownload:f.status==='done', download:()=>this.download(i) };
+    });
+
+    return {
+      target:s.target, targetLabel:this.fmtK(s.target)+' tris', onTarget:e=>setT(+e.target.value),
+      presets,
+      onDragOver:e=>{ e.preventDefault(); if(!s.dz) this.setState({dz:true}); },
+      onDragLeave:e=>{ e.preventDefault(); this.setState({dz:false}); },
+      onDrop:e=>{ e.preventDefault(); this.setState({dz:false}); this.addFiles(e.dataTransfer.files); },
+      onPick:e=>this.addFiles(e.target.files),
+      dzBorder:s.dz?'#b5532a':'#d6d1c6', dzBg:s.dz?'#f7ede5':'#faf9f6',
+      hasFiles:s.files.length>0,
+      rows,
+      downloadAll:()=>this.downloadAll(), clearAll:()=>this.setState({files:[]}),
+      downloadAllLabel: done.length? `Download all (${done.length}) as ZIP` : 'Download all as ZIP',
+      zipOpacity: done.length?1:0.5,
+      summaryLabel: s.files.length? `${done.length}/${s.files.length} done` + (done.length? `  ·  ${this.fmtBytes(totalOrig)} → ${this.fmtBytes(totalOut)}` : '') : ''
+    };
+  }
+}
+</script>
+</body>
+</html>
