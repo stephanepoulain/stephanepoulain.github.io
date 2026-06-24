@@ -248,6 +248,12 @@ defaults:
       path: "assets"
     values:
       sitemap: false
+  # Standalone Shrew Spine Atlas app: reachable by URL but kept out of the sitemap
+  # (unlisted for now — no nav link yet).
+  - scope:
+      path: "shrew-spine"
+    values:
+      sitemap: false
 
 sass:
   style: compressed
@@ -257,7 +263,9 @@ sass:
 # -----------------------------------------------------------------------------
 
 jekyll-minifier:
-  exclude: ["robots.txt"]
+  # Serve the standalone Shrew Spine Atlas app byte-identical (its viewer JS/HTML
+  # are hand-tuned by Claude Design; re-minifying could break them).
+  exclude: ["robots.txt", "shrew-spine/*", "shrew-spine/**"]
   uglifier_args:
     harmony: true
 

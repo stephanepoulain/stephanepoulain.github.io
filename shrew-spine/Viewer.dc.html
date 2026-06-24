@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#111;-webkit-tap-highlight-color:transparent}
+  canvas{display:block;touch-action:none}
+  .vstrip::-webkit-scrollbar{height:0}
+  select.glass{appearance:none;-webkit-appearance:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="position:fixed;inset:0;font-family:'Inter Tight',system-ui,sans-serif;color:#fff;user-select:none;-webkit-user-select:none">
+
+  <canvas ref="{{ canvasRef }}" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+
+  <!-- subtle vignette to focus the eye on the specimen -->
+  <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 70% at 50% 46%, transparent 55%, rgba(0,0,0,0.28) 100%)"></div>
+
+  <!-- TOP BAR -->
+  <div style="position:absolute;top:0;left:0;right:0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;pointer-events:none">
+    <div style="display:flex;flex-direction:column;gap:10px;pointer-events:auto">
+      <!-- mode segmented -->
+      <div style="display:flex;gap:4px;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:4px;width:max-content">
+        <sc-for list="{{ modes }}" as="m" hint-placeholder-count="4">
+          <button onClick="{{ m.fn }}" style="font-family:'Inter Tight',sans-serif;font-size:16.5px;font-weight:600;padding:9px 17px;border-radius:9px;border:none;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};transition:background .15s,color .15s;white-space:nowrap">{{ m.label }}</button>
+        </sc-for>
+      </div>
+      <!-- specimen selector -->
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:6px 8px 6px 12px;width:max-content;max-width:70vw">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:0.14em;color:rgba(255,255,255,0.5)">SPECIMEN</span>
+        <select class="glass" value="{{ activeShrew }}" onChange="{{ onShrewChange }}" style="font-family:'Newsreader','Inter Tight',serif;font-size:21px;font-weight:500;font-style:italic;color:#fff;background:transparent;border:none;outline:none;cursor:pointer;padding:2px 4px;max-width:56vw">
+          <sc-for list="{{ shrewOptions }}" as="o" hint-placeholder-count="2">
+            <option value="{{ o.key }}" style="color:#111;font-style:italic">{{ o.label }}</option>
+          </sc-for>
+        </select>
+      </div>
+      <!-- bone colour toggle: specimen accent vs neutral -->
+      <button onClick="{{ onToggleTint }}" title="Toggle specimen accent colour" style="display:flex;align-items:center;gap:8px;width:max-content;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:7px 12px;cursor:pointer;color:#fff;font-family:'Inter Tight',sans-serif;font-size:15px;font-weight:600">
+        <span style="width:12px;height:12px;border-radius:50%;background:{{ tintSwatch }};box-shadow:0 0 0 1.5px rgba(255,255,255,0.25)"></span>
+        <span style="letter-spacing:0.01em">{{ tintLabel }}</span>
+      </button>
+    </div>
+
+    <div style="display:flex;gap:8px;pointer-events:auto"></div>
+  </div>
+
+  <!-- ORIENTATION GIZMO (bottom-right) -->
+  <div ref="{{ gizmoRef }}" style="position:absolute;right:14px;bottom:{{ cornerBottom }};width:{{ gizSize }};height:{{ gizSize }};pointer-events:none;background:rgba(19,18,24,0.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:10px;box-sizing:border-box"></div>
+
+  <!-- SCALE BAR (bottom-left) -->
+  <div style="position:absolute;left:14px;bottom:{{ cornerBottom }};pointer-events:none;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:11px 16px 13px;display:flex;flex-direction:column;gap:8px;align-items:center">
+    <span ref="{{ scaleLabelRef }}" style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:500;letter-spacing:0.12em;color:rgba(255,255,255,0.92)">— mm</span>
+    <div ref="{{ scaleFillRef }}" style="width:150px;height:9px;border:1.5px solid rgba(255,255,255,0.85);border-top:none"></div>
+  </div>
+
+  <!-- VERTEBRA STRIP (bottom-center) -->
+  <sc-if value="{{ showVertStrip }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:16px;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:auto;max-width:94vw">
+
+      <!-- mini spine map: real geometry rendered into an inset viewport -->
+      <div style="width:100%;display:flex;flex-direction:column;gap:4px;align-items:stretch">
+        <div ref="{{ miniRef }}" style="width:100%;height:96px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;pointer-events:none;overflow:hidden"></div>
+        <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:rgba(255,255,255,0.4)">
+          <span>CRANIAL</span><span>CAUDAL</span>
+        </div>
+      </div>
+
+      <!-- chip strip + arrows -->
+      <div style="display:flex;align-items:stretch;gap:8px;max-width:100%">
+        <button onClick="{{ onPrev }}" title="Previous vertebra" style="flex:none;width:50px;display:flex;align-items:center;justify-content:center;border-radius:13px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);color:#fff;opacity:{{ prevDim }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="vstrip" ref="{{ stripRef }}" style="max-width:{{ stripMax }};overflow-x:auto;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:8px">
+          <div style="display:flex;gap:5px;width:max-content">
+            <sc-for list="{{ vertChips }}" as="v" hint-placeholder-count="7">
+              <button onClick="{{ v.fn }}" title="{{ v.region }}" style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:50px;padding:8px 11px;border-radius:10px;border:none;cursor:pointer;background:{{ v.bg }};color:{{ v.fg }};transition:background .12s">
+                <span style="font-size:15px;font-weight:700;line-height:1">{{ v.code }}</span>
+                <span style="width:14px;height:3px;border-radius:2px;background:{{ v.dot }}"></span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+        <button onClick="{{ onNext }}" title="Next vertebra" style="flex:none;width:50px;display:flex;align-items:center;justify-content:center;border-radius:13px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);color:#fff;opacity:{{ nextDim }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+
+  <!-- info caption (top-center, for spine/compare) -->
+  <sc-if value="{{ showCaption }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:18px;left:50%;transform:translateX(-50%);background:rgba(19,18,24,0.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:999px;padding:7px 18px;display:flex;align-items:center;gap:10px;pointer-events:none;white-space:nowrap">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.14em;color:rgba(255,255,255,0.5)">{{ captionMeta }}</span>
+      <span style="width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,0.3)"></span>
+      <span style="font-family:'Newsreader',serif;font-style:italic;font-size:17px;font-weight:500;color:rgba(255,255,255,0.92)">{{ captionName }}</span>
+    </div>
+  </sc-if>
+
+  <!-- LOADING -->
+  <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#16151a;z-index:20">
+      <div style="width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,0.15);border-top-color:#e9a07a;animation:spin 0.8s linear infinite"></div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.06em;color:rgba(255,255,255,0.7)">{{ loadingMsg }}</div>
+    </div>
+  </sc-if>
+
+  <!-- DRAG OVERLAY -->
+  <sc-if value="{{ dragging }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(22,20,18,0.82);backdrop-filter:blur(6px);z-index:25;border:3px dashed #e9a07a;pointer-events:none">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#e9a07a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5l5 5"/><path d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2"/></svg>
+      <div style="font-size:18px;font-weight:600">Drop STL or GLB files</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6)">Auto-grouped by specimen, ordered along the spine</div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  canvasRef = React.createRef();
+  stripRef = React.createRef();
+  scaleFillRef = React.createRef();
+  scaleLabelRef = React.createRef();
+  gizmoRef = React.createRef();
+  miniRef = React.createRef();
+  state = {
+    ready:false, loading:true, loadingMsg:'Loading engine…',
+    mode:'single', theme:'dark',
+    shrews:[], activeShrew:null, compareShrew:null,
+    verts:[], selVert:0,
+    autoRotate:false, wireframe:false, dragging:false, isMobile:false, tint:true
+  };
+
+  checkMobile(){ const m = innerWidth < 640; if(m !== this.state.isMobile) this.setState({ isMobile:m }); }
+
+  THEMES = {
+    dark:   { label:'Lab',    swatch:'#1b1a20', bg:0x252429, fog:null, boneColor:0xf1e8d9, rough:0.52,  env:0.6,  hemiSky:0x9aa4c0, hemiGround:0x70707e, hemiInt:0.95, keyInt:1.8, keyColor:0xffe9d2, rimInt:0.9, rimColor:0x86acff }
+  };
+
+  REGION = { C:{name:'Cervical',base:0,color:'#7fb2 e'}, T:{name:'Thoracic',base:100,color:'#e9a07a'}, L:{name:'Lumbar',base:200,color:'#d98b6a'}, S:{name:'Sacral',base:300,color:'#b5836a'}, Ca:{name:'Caudal',base:400,color:'#9a7b66'} };
+  regionColor(r){ return ({Cervical:'#6f9bd1',Thoracic:'#5aa6a1',Lumbar:'#cfa24e',Sacral:'#c77f7a',Caudal:'#9a86c0'})[r]||'#9aa0a6'; }
+  hexRgba(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+
+  async componentDidMount(){
+    const THREE = await import('three');
+    const { TrackballControls } = await import('three/addons/controls/TrackballControls.js');
+    const { STLLoader } = await import('three/addons/loaders/STLLoader.js');
+    const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+    const { mergeVertices } = await import('three/addons/utils/BufferGeometryUtils.js');
+    const { EffectComposer } = await import('three/addons/postprocessing/EffectComposer.js');
+    const { RenderPass } = await import('three/addons/postprocessing/RenderPass.js');
+    const { SAOPass } = await import('three/addons/postprocessing/SAOPass.js');
+    const { OutputPass } = await import('three/addons/postprocessing/OutputPass.js');
+    const { MeshoptSimplifier } = await import('https://cdn.jsdelivr.net/npm/meshoptimizer@0.20.0/meshopt_simplifier.module.js');
+    await MeshoptSimplifier.ready;
+    this.L = { THREE, TrackballControls, STLLoader, GLTFLoader, mergeVertices, EffectComposer, RenderPass, SAOPass, OutputPass, MeshoptSimplifier };
+    this.initScene();
+    this.setState({ ready:true });
+    try { await this.loadInitial(); }
+    catch(e){ console.error(e); this.setState({ loading:false }); }
+  }
+
+  initScene(){
+    const { THREE, TrackballControls } = this.L;
+    const canvas = this.canvasRef.current;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
+    renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 5000);
+    camera.position.set(0,0,10);
+    // TrackballControls: free tumbling (no gimbal lock / locked poles)
+    const controls = new TrackballControls(camera, canvas);
+    controls.rotateSpeed = 3.2;
+    controls.zoomSpeed = 1.3;
+    controls.panSpeed = 0.8;
+    controls.staticMoving = false;
+    controls.dynamicDampingFactor = 0.05;
+    controls.minDistance = 0.2;
+
+    const hemi = new THREE.HemisphereLight(0xffffff,0x888888,1);
+    const key = new THREE.DirectionalLight(0xffffff,1.0); key.position.set(6,5,5);    // right-front
+    const rim = new THREE.DirectionalLight(0xffffff,1.0); rim.position.set(-6,5,5);   // left-front (mirror)
+    const fill = new THREE.DirectionalLight(0xffffff,0.4); fill.position.set(0,6,3);  // top
+    scene.add(hemi,key,rim,fill);
+
+    // Flat, uniform environment — same in every direction, so no axis is structurally
+    // brighter. Form comes from the camera-relative lights below, not the world.
+    const gradCanvas = document.createElement('canvas');
+    gradCanvas.width = 4; gradCanvas.height = 4;
+    const gctx = gradCanvas.getContext('2d');
+    gctx.fillStyle = '#9a9aa0'; gctx.fillRect(0,0,4,4);
+    const gradTex = new THREE.CanvasTexture(gradCanvas);
+    gradTex.mapping = THREE.EquirectangularReflectionMapping;
+    gradTex.colorSpace = THREE.SRGBColorSpace;
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    this.envTex = pmrem.fromEquirectangular(gradTex).texture;
+    gradTex.dispose();
+    scene.environment = this.envTex;
+
+    this.material = new THREE.MeshStandardMaterial({ color:0xede2cf, roughness:0.6, metalness:0.05, envMapIntensity:0.55, flatShading:false });
+    this.pairCranialMat = new THREE.MeshStandardMaterial({ color:0xede2cf, roughness:0.6, metalness:0.05, envMapIntensity:0.55 });
+    this.pairCaudalMat  = new THREE.MeshStandardMaterial({ color:0xede2cf, roughness:0.62, metalness:0.05, envMapIntensity:0.55 });
+    this.group = new THREE.Group(); scene.add(this.group);
+
+    this.three = { renderer, scene, camera, controls, hemi, key, rim, fill };
+
+    // ----- mini-map: a small second scene holding the full spine, drawn into an inset viewport -----
+    this.miniScene = new THREE.Scene();
+    this.miniScene.environment = this.envTex;
+    const mHemi = new THREE.HemisphereLight(0xffffff,0x888888,1.0);
+    const mKey = new THREE.DirectionalLight(0xffffff,1.1); mKey.position.set(6,5,5);
+    const mRim = new THREE.DirectionalLight(0xffffff,1.1); mRim.position.set(-6,5,5);
+    const mTop = new THREE.DirectionalLight(0xffffff,0.4); mTop.position.set(0,6,3);
+    this.miniScene.add(mHemi,mKey,mRim,mTop);
+    this.miniGroup = new THREE.Group(); this.miniScene.add(this.miniGroup);
+    this.miniCam = new THREE.PerspectiveCamera(38,1,0.001,5000);
+    this.miniDimMat = new THREE.MeshStandardMaterial({ color:0xb9b3a6, roughness:0.72, metalness:0, envMapIntensity:0.35 });
+    this.miniHotMat = new THREE.MeshStandardMaterial({ color:0xe9a07a, roughness:0.5, metalness:0, emissive:0x5a2a16, emissiveIntensity:0.5, envMapIntensity:0.5 });
+    this.miniMeshes = [];
+
+    this.applyTheme(this.state.theme);
+
+    this.resize(); this.checkMobile();
+    this._onResize = ()=>{ this.resize(); this.checkMobile(); }; addEventListener('resize', this._onResize);
+    this._onKey = (e)=>{
+      if(e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+      const k = e.key;
+      if(k==='1'){ this.setMode('single'); }
+      else if(k==='2'){ this.setMode('pair'); }
+      else if(k==='3'){ this.setMode('spine'); }
+      else if(k==='ArrowLeft' || k==='ArrowRight'){
+        const shrew = this.getShrew(this.state.activeShrew); if(!shrew) return;
+        const n = shrew.verts.length, d = k==='ArrowRight'?1:-1;
+        const i = Math.min(Math.max(this.state.selVert+d, 0), n-1);
+        if(i !== this.state.selVert) this.setSel(i);
+        e.preventDefault();
+      }
+    };
+    addEventListener('keydown', this._onKey);
+    this.buildGizmo();
+    const loop = ()=>{
+      this._raf = requestAnimationFrame(loop);
+      if(this.state.autoRotate){
+        const off = camera.position.clone().sub(controls.target);
+        off.applyAxisAngle(camera.up, 0.006);
+        camera.position.copy(controls.target).add(off);
+      }
+      controls.update();
+      // headlights follow the camera so the side you're looking at is always lit
+      // (never a dark face toward you), with a gentle above/below split for form.
+      const cd = camera.position.distanceTo(controls.target);
+      key.position.copy(camera.position).addScaledVector(camera.up, cd*0.32);
+      rim.position.copy(camera.position).addScaledVector(camera.up, -cd*0.32);
+      fill.position.copy(camera.position);
+      if(this.composer) this.composer.render(); else renderer.render(scene,camera);
+      this.updateScale();
+      this.updateGizmo();
+      this.renderMiniMap();
+    };
+    loop();
+  }
+
+  componentWillUnmount(){ cancelAnimationFrame(this._raf); removeEventListener('resize', this._onResize); removeEventListener('keydown', this._onKey); }
+  resize(){
+    if(!this.three) return;
+    const { renderer, camera } = this.three;
+    const w = innerWidth, h = innerHeight;
+    renderer.setSize(w,h,false); camera.aspect = w/h; camera.updateProjectionMatrix();
+    if(this.composer) this.composer.setSize(w,h);
+    if(this.three.controls.handleResize) this.three.controls.handleResize();
+  }
+
+  ACCENTS = { somereni:0xc0473a, goliath:0x3f63bf, thori:0x2f9257 };
+  accentFor(){
+    const k = (this.state.activeShrew||'').toLowerCase();
+    if(/somereni/.test(k)) return this.ACCENTS.somereni;
+    if(/goliath/.test(k))  return this.ACCENTS.goliath;
+    if(/thori/.test(k))    return this.ACCENTS.thori;
+    return null;
+  }
+
+  // Set the bone colours: a neutral cream/grey, or — when tint is on — the cream nudged
+  // subtly toward the specimen's signature accent. The two alternating tones (used in
+  // Pair & Spine) are always derived from this base, so alternation survives the tint.
+  applyBoneColors(){
+    const { THREE } = this.L;
+    const t = this.THEMES[this.state.theme];
+    const base = new THREE.Color(t.boneColor);
+    if(this.state.tint){
+      const acc = this.accentFor();
+      if(acc!=null){ base.lerp(new THREE.Color(acc), 0.58); base.offsetHSL(0, 0.12, 0.04); }
+    }
+    this.material.color.copy(base); this.material.needsUpdate = true;
+    const hsl = {}; base.getHSL(hsl);
+    const cr = new THREE.Color().setHSL(hsl.h, hsl.s, Math.min(0.93, hsl.l*1.05));
+    const ca = new THREE.Color().setHSL(hsl.h, hsl.s*0.92, Math.max(0.3, hsl.l*0.6));
+    this.pairCranialMat.color.copy(cr); this.pairCranialMat.needsUpdate = true;
+    this.pairCaudalMat.color.copy(ca);  this.pairCaudalMat.needsUpdate = true;
+  }
+
+  applyTheme(key){
+    const t = this.THEMES[key]; const { THREE } = this.L;
+    const { scene, hemi, key:keyL, rim, fill } = this.three;
+    scene.background = new THREE.Color(t.bg);
+    hemi.color.setHex(t.hemiSky); hemi.groundColor.setHex(t.hemiSky); hemi.intensity = t.hemiInt*0.85;
+    keyL.color.setHex(t.keyColor); keyL.intensity = t.keyInt*0.46;
+    rim.color.setHex(t.keyColor); rim.intensity = t.keyInt*0.34;   // even vertical, softer overall
+    fill.intensity = (key==='dark'?0.2:0.26);
+    this.material.roughness = t.rough;
+    this.material.envMapIntensity = t.env*0.38;
+    this.pairCranialMat.roughness = t.rough; this.pairCranialMat.envMapIntensity = t.env*0.3;
+    this.pairCaudalMat.roughness = Math.min(0.95, t.rough+0.12); this.pairCaudalMat.envMapIntensity = t.env*0.18;
+    this.applyBoneColors();
+    if(this.miniScene){ this.miniScene.background = new THREE.Color(key==='dark'?0x101015:0xc2c6cc); }
+    if(this.miniDimMat){ this.miniDimMat.color.setHex(key==='dark'?0xc7c0b2:0xcfc7b6); this.miniDimMat.needsUpdate = true; }
+  }
+
+  // ---------- geometry helpers ----------
+  prepGeo(rawGeo){
+    const { THREE, mergeVertices, MeshoptSimplifier } = this.L;
+    let g = rawGeo; g.deleteAttribute('normal'); g.deleteAttribute('uv');
+    g = mergeVertices(g);
+    const isMobile = Math.min(innerWidth,innerHeight) < 700 || matchMedia('(pointer:coarse)').matches;
+    const budget = isMobile ? 14000 : 40000;
+    const pos = new Float32Array(g.getAttribute('position').array);
+    let index = g.getIndex() ? new Uint32Array(g.getIndex().array) : null;
+    if(!index){ index = new Uint32Array(pos.length/3); for(let i=0;i<index.length;i++) index[i]=i; }
+    const tris = index.length/3;
+    if(tris > budget){
+      const res = MeshoptSimplifier.simplify(index, pos, 3, budget*3, 0.03, []);
+      index = res[0];
+    }
+    const map=new Map(),np=[],out=new Uint32Array(index.length);
+    for(let i=0;i<index.length;i++){const v=index[i];let nv=map.get(v);if(nv===undefined){nv=np.length/3;map.set(v,nv);np.push(pos[v*3],pos[v*3+1],pos[v*3+2]);}out[i]=nv;}
+    const ng = new THREE.BufferGeometry();
+    ng.setAttribute('position', new THREE.Float32BufferAttribute(np,3));
+    ng.setIndex(np.length/3>65535 ? new THREE.Uint32BufferAttribute(out,1) : new THREE.Uint16BufferAttribute(Array.from(out),1));
+    ng.computeVertexNormals();
+    ng.computeBoundingBox();
+    ng.userData.center = new THREE.Vector3();
+    ng.boundingBox.getCenter(ng.userData.center);
+    ng.userData.size = new THREE.Vector3();
+    ng.boundingBox.getSize(ng.userData.size);
+    return ng;
+  }
+
+  // ---------- filename parsing ----------
+  parseName(name){
+    const base = name.replace(/\.(stl|glb)$/i,'');
+    const parts = base.split('_');
+    let genus='', species='', code='', id='';
+    // find vertebra token: Ca?\d+ or [CTLS]\d+
+    let vi = -1, vert=null;
+    for(let i=0;i<parts.length;i++){
+      const m = parts[i].match(/^(Ca|C|T|L|S)(\d{1,2})$/);
+      if(m){ vi=i; vert={pre:m[1],num:+m[2]}; break; }
+    }
+    // FMNH_<id>_<Genus>_<species>... -> genus/species are tokens before vert that are alphabetic
+    if(vi>0){
+      const alpha = parts.slice(0,vi).filter(p=>/^[A-Za-z]+$/.test(p) && p.toUpperCase()!==p);
+      // genus capitalized, species lowercase
+      const cap = parts.slice(0,vi).filter(p=>/^[A-Z][a-z]+$/.test(p));
+      const low = parts.slice(0,vi).filter(p=>/^[a-z]+$/.test(p));
+      genus = cap[0]||''; species = low[0]||cap[1]||'';
+      id = (parts.find(p=>/^\d{4,}$/.test(p))||'');
+    }
+    const reg = vert ? this.REGION[vert.pre] : null;
+    const region = reg ? reg.name : 'Other';
+    const order = reg ? reg.base + (vert.num||0) : 999;
+    code = vert ? (vert.pre + vert.num) : base;
+    const sciKey = (genus+'_'+species).toLowerCase();
+    const label = genus ? (genus + (species?(' '+species):'')) : base;
+    return { genus, species, sciKey, label, code, region, order, id };
+  }
+
+  buildLibrary(items){ // items: [{name, geo}]
+    const map = new Map();
+    for(const it of items){
+      const p = this.parseName(it.name);
+      const key = p.sciKey || it.name;
+      if(!map.has(key)) map.set(key, { key, label:p.label, genus:p.genus, species:p.species, verts:[] });
+      map.get(key).verts.push({ code:p.code, region:p.region, order:p.order, geo:it.geo, name:it.name });
+    }
+    const shrews = [...map.values()];
+    shrews.forEach(s=> s.verts.sort((a,b)=>a.order-b.order));
+    shrews.sort((a,b)=> a.label.localeCompare(b.label));
+    this.lib = shrews;
+    const activeShrew = shrews[0]?.key || null;
+    const compareShrew = shrews[1]?.key || shrews[0]?.key || null;
+    this.setState({
+      shrews: shrews.map(s=>({key:s.key,label:s.label,count:s.verts.length})),
+      activeShrew, compareShrew, selVert:0, loading:false, isDemo: !!this._isDemo
+    });
+  }
+
+  getShrew(key){ return (this.lib||[]).find(s=>s.key===key); }
+
+  // ---------- scene rebuild ----------
+  rebuild(){
+    if(!this.three || !this.lib) return;
+    this.computeAxes();
+    this.applyBoneColors();
+    this.buildMiniSpine();
+    const { THREE } = this.L;
+    const g = this.group;
+    while(g.children.length){ const c=g.children.pop(); g.remove(c); }
+    g.position.set(0,0,0); g.scale.set(1,1,1);
+
+    const mk = (geo)=>{ const m=new THREE.Mesh(geo, this.material); return m; };
+    const mode = this.state.mode;
+    const shrew = this.getShrew(this.state.activeShrew);
+    if(!shrew) return;
+    const verts = shrew.verts;
+    const box = new THREE.Box3();
+
+    if(mode==='single'){
+      const v = verts[Math.min(this.state.selVert, verts.length-1)];
+      if(v){ const m=mk(v.geo); m.position.copy(v.geo.userData.center).multiplyScalar(-1); g.add(m); }
+    } else if(mode==='pair'){
+      let i = Math.min(this.state.selVert, verts.length-1);
+      let j = i+1 < verts.length ? i+1 : i-1;
+      const idxs = [i,j].filter(k=>k>=0);
+      // midpoint of the involved vertebra centers (world coords)
+      const mid = new THREE.Vector3();
+      idxs.forEach(k=> mid.add(verts[k].geo.userData.center));
+      mid.multiplyScalar(1/idxs.length);
+      const cranialK = Math.min(...idxs), caudalK = Math.max(...idxs);
+      idxs.forEach(k=>{
+        const v=verts[k];
+        const m=new THREE.Mesh(v.geo, k===cranialK ? this.pairCranialMat : this.pairCaudalMat);
+        m.position.copy(mid).multiplyScalar(-1); g.add(m);
+      });
+    } else if(mode==='spine'){
+      verts.forEach((v,i)=>{ const m=new THREE.Mesh(v.geo, i%2===0 ? this.pairCranialMat : this.pairCaudalMat); m.userData.vi=i; g.add(m); });
+      g.updateMatrixWorld(true);
+      box.setFromObject(g); const c=box.getCenter(new THREE.Vector3()); g.position.sub(c);
+    } else if(mode==='compare'){
+      const a = shrew, b = this.getShrew(this.state.compareShrew)||shrew;
+      const groupA = new THREE.Group(), groupB = new THREE.Group();
+      a.verts.forEach(v=> groupA.add(mk(v.geo)));
+      b.verts.forEach(v=> groupB.add(mk(v.geo)));
+      [groupA,groupB].forEach(gr=>{ gr.updateMatrixWorld(true); const bb=new THREE.Box3().setFromObject(gr); const c=bb.getCenter(new THREE.Vector3()); gr.children.forEach(ch=>ch.position.sub(c)); });
+      const sa = new THREE.Box3().setFromObject(groupA).getSize(new THREE.Vector3());
+      const sb = new THREE.Box3().setFromObject(groupB).getSize(new THREE.Vector3());
+      const gap = (sa.y+sb.y)/2*0.62 + Math.max(sa.y,sb.y)*0.18;
+      groupA.position.y = gap; groupB.position.y = -gap;
+      g.add(groupA, groupB);
+    }
+    // Carry the current rotation across mode/specimen changes; only the very first
+    // framing (or none yet) uses the default angle. Vertebra steps don't reframe.
+    const onlyStep = this._framedFor
+      && this._framedFor.mode === mode
+      && this._framedFor.shrew === this.state.activeShrew
+      && this._framedFor.cmp === this.state.compareShrew
+      && (mode==='single' || mode==='pair');
+    if(!onlyStep){
+      this.frame(this._hasFramed);
+      this._hasFramed = true;
+      this._framedFor = { mode, shrew:this.state.activeShrew, cmp:this.state.compareShrew };
+    }
+  }
+
+  frame(preserveDir){
+    const { THREE } = this.L;
+    const { camera, controls, renderer } = this.three;
+    const box = new THREE.Box3().setFromObject(this.group);
+    if(box.isEmpty()) return;
+    const center = box.getCenter(new THREE.Vector3());
+    const mode = this.state.mode;
+    let dir;
+    if(preserveDir && this._home){
+      // keep the user's current viewing angle (and roll) — just re-fit the distance
+      dir = camera.position.clone().sub(controls.target).normalize();
+    } else {
+      camera.up.set(0,1,0);
+      dir = (mode==='single')
+        ? new THREE.Vector3(0.3,0.32,0.9).normalize()
+        : new THREE.Vector3(0.9,0.34,0.18).normalize();
+    }
+
+    // Fit by projecting the bounding box onto the actual screen axes (right/up),
+    // accounting for the viewport aspect — so a long horizontal spine fills the
+    // width instead of being sized to the vertical FOV.
+    const right = new THREE.Vector3().crossVectors(dir, camera.up).normalize();
+    const up = new THREE.Vector3().crossVectors(right, dir).normalize();
+    const corners = [];
+    for(const sx of [box.min.x,box.max.x]) for(const sy of [box.min.y,box.max.y]) for(const sz of [box.min.z,box.max.z])
+      corners.push(new THREE.Vector3(sx,sy,sz).sub(center));
+    let halfW=0, halfH=0, halfD=0;
+    corners.forEach(c=>{ halfW=Math.max(halfW,Math.abs(c.dot(right))); halfH=Math.max(halfH,Math.abs(c.dot(up))); halfD=Math.max(halfD,Math.abs(c.dot(dir))); });
+    const aspect = renderer.domElement.clientWidth / renderer.domElement.clientHeight;
+    const fovV = camera.fov*Math.PI/180, tanV = Math.tan(fovV/2);
+    const distH = halfH / tanV;
+    const distW = halfW / (tanV*aspect);
+    const margin = (mode==='single') ? 1.22 : 1.12;
+    const dist = (Math.max(distH, distW) + halfD) * margin;
+
+    controls.target.copy(center);
+    camera.position.copy(center).add(dir.clone().multiplyScalar(dist));
+    const radius = Math.max(halfW,halfH,halfD);
+    camera.near = Math.max(dist/200,0.001); camera.far = dist*100; camera.updateProjectionMatrix();
+    controls.minDistance = radius*0.4; controls.maxDistance = dist*5;
+    controls.update();
+    this._home = { pos:camera.position.clone(), target:center.clone(), up:camera.up.clone() };
+  }
+
+  // Build the miniature full-spine scene (real geometry) for the active specimen.
+  buildMiniSpine(){
+    const { THREE } = this.L;
+    const g = this.miniGroup; if(!g) return;
+    while(g.children.length){ g.remove(g.children.pop()); }
+    this.miniMeshes = [];
+    const shrew = this.getShrew(this.state.activeShrew);
+    if(!shrew) return;
+    this._miniKey = shrew.key;
+    shrew.verts.forEach((v,i)=>{
+      const m = new THREE.Mesh(v.geo, this.miniDimMat);
+      m.userData.vi = i;
+      g.add(m); this.miniMeshes.push(m);
+    });
+    g.position.set(0,0,0);
+    g.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(g);
+    const center = box.getCenter(new THREE.Vector3());
+    g.position.sub(center);                 // centre at origin
+
+    // True cranial–caudal direction via PCA on the vertebra centres (handles spines
+    // whose long axis runs diagonally to the world axes), so the map lies straight.
+    const verts = shrew.verts;
+    const cen = new THREE.Vector3();
+    verts.forEach(v=> cen.add(v.geo.userData.center));
+    cen.multiplyScalar(1/verts.length);
+    let cxx=0,cyy=0,czz=0,cxy=0,cxz=0,cyz=0;
+    verts.forEach(v=>{
+      const p = v.geo.userData.center.clone().sub(cen);
+      cxx+=p.x*p.x; cyy+=p.y*p.y; czz+=p.z*p.z; cxy+=p.x*p.y; cxz+=p.x*p.z; cyz+=p.y*p.z;
+    });
+    const mul = (m,v)=> new THREE.Vector3(
+      m[0]*v.x+m[1]*v.y+m[2]*v.z, m[1]*v.x+m[3]*v.y+m[4]*v.z, m[2]*v.x+m[4]*v.y+m[5]*v.z);
+    const cov = [cxx,cxy,cxz,cyy,cyz,czz];
+    let pc = verts[verts.length-1].geo.userData.center.clone().sub(verts[0].geo.userData.center);
+    if(pc.lengthSq()<1e-9) pc.set(0,0,1);
+    pc.normalize();
+    for(let k=0;k<24;k++){ const nx=mul(cov,pc); if(nx.lengthSq()<1e-12) break; nx.normalize(); pc.copy(nx); }
+    // orient cranial→caudal (verts[0] is cranial); caudal should sit on +axis (screen right)
+    const c2c = verts[verts.length-1].geo.userData.center.clone().sub(verts[0].geo.userData.center);
+    if(pc.dot(c2c) < 0) pc.multiplyScalar(-1);
+    const right = pc.clone().normalize();
+
+    const ax = this._axes || { longI:2, dvI:1, lrI:0, sign:1 };
+    const e = [new THREE.Vector3(1,0,0),new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1)];
+    let approxUp = e[ax.dvI].clone();
+    if(Math.abs(approxUp.dot(right))>0.95) approxUp = e[ax.lrI].clone();
+    const viewDir = new THREE.Vector3().crossVectors(right, approxUp).normalize();
+    const up = new THREE.Vector3().crossVectors(viewDir, right).normalize();
+
+    // half-extents in the screen frame (centre-spread + each vertebra's radius)
+    let halfLong=0, halfDV=0;
+    verts.forEach(v=>{
+      const rel = v.geo.userData.center.clone().sub(center);
+      const rad = v.geo.userData.size.length()/2;
+      halfLong = Math.max(halfLong, Math.abs(rel.dot(right)) + rad);
+      halfDV   = Math.max(halfDV,   Math.abs(rel.dot(up))    + rad);
+    });
+    this._miniFit = { halfLong, halfDV, dir: viewDir, up };
+    this.miniCam.up.copy(up);
+  }
+
+  updateMiniHighlight(){
+    if(!this.miniMeshes || !this.miniMeshes.length) return;
+    const sel = this.state.selVert;
+    const hot = new Set([sel]);
+    if(this.state.mode==='pair'){ const n=this.miniMeshes.length; hot.add(sel+1<n?sel+1:sel-1); }
+    for(let i=0;i<this.miniMeshes.length;i++){
+      const want = hot.has(i) ? this.miniHotMat : this.miniDimMat;
+      if(this.miniMeshes[i].material !== want) this.miniMeshes[i].material = want;
+    }
+  }
+
+  renderMiniMap(){
+    const panel = this.miniRef && this.miniRef.current;
+    if(!panel || !this.miniScene || !this.miniCam) return;
+    const show = (this.state.mode==='single' || this.state.mode==='pair');
+    if(!show) return;
+    if(this._miniKey !== this.state.activeShrew) this.buildMiniSpine();
+    this.updateMiniHighlight();
+    const { renderer } = this.three;
+    const r = panel.getBoundingClientRect();
+    if(r.width < 4 || r.height < 4) return;
+    const H = renderer.domElement.clientHeight, W = renderer.domElement.clientWidth;
+    const x = r.left, y = H - r.bottom, w = r.width, h = r.height;
+    const cam = this.miniCam, fit = this._miniFit;
+    if(fit){
+      const aspect = w/h;
+      const fovV = cam.fov*Math.PI/180, tanV = Math.tan(fovV/2);
+      const distV = fit.halfDV / tanV;
+      const distH = fit.halfLong / (tanV*aspect);
+      const dist = Math.max(distV, distH)*1.12 + 0.001;
+      cam.aspect = aspect;
+      cam.position.copy(fit.dir).multiplyScalar(dist);
+      cam.up.copy(fit.up);
+      cam.lookAt(0,0,0);
+      cam.near = Math.max(dist/100,0.0005); cam.far = dist*100;
+      cam.updateProjectionMatrix();
+    } else {
+      cam.aspect = w/h; cam.updateProjectionMatrix();
+    }
+    renderer.setScissorTest(true);
+    renderer.setViewport(x,y,w,h);
+    renderer.setScissor(x,y,w,h);
+    renderer.render(this.miniScene, this.miniCam);
+    renderer.setScissorTest(false);
+    renderer.setViewport(0,0,W,H);
+  }
+
+  resetView(){ if(this._home){ this.three.camera.up.copy(this._home.up); this.three.camera.position.copy(this._home.pos); this.three.controls.target.copy(this._home.target); this.three.controls.update(); } }
+
+  buildGizmo(){
+    const giz = this.gizmoRef.current; if(!giz) return;
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS,'svg');
+    svg.setAttribute('viewBox','0 0 96 96'); svg.style.width='100%'; svg.style.height='100%'; svg.style.overflow='hidden';
+    const defs = [ {pos:'Cranial',neg:'Caudal',col:'#e9a07a'}, {pos:'Dorsal',neg:'Ventral',col:'#88a8d0'}, {pos:'Left',neg:'Right',col:'#9bbf8a'} ];
+    this._gizEls = [];
+    for(const d of defs){
+      const line = document.createElementNS(NS,'line');
+      line.setAttribute('stroke',d.col); line.setAttribute('stroke-width','2.2'); line.setAttribute('stroke-linecap','round');
+      svg.appendChild(line);
+      const tp = document.createElementNS(NS,'text');
+      tp.setAttribute('font-size','9.5'); tp.setAttribute('font-family','IBM Plex Mono, monospace'); tp.setAttribute('font-weight','700');
+      tp.setAttribute('fill',d.col); tp.setAttribute('text-anchor','middle'); tp.setAttribute('dominant-baseline','central'); tp.textContent=d.pos;
+      svg.appendChild(tp);
+      const tn = document.createElementNS(NS,'text');
+      tn.setAttribute('font-size','8.5'); tn.setAttribute('font-family','IBM Plex Mono, monospace');
+      tn.setAttribute('fill',d.col); tn.setAttribute('text-anchor','middle'); tn.setAttribute('dominant-baseline','central'); tn.textContent=d.neg;
+      svg.appendChild(tn);
+      this._gizEls.push({ line, tp, tn });
+    }
+    const hub = document.createElementNS(NS,'circle');
+    hub.setAttribute('cx','48'); hub.setAttribute('cy','48'); hub.setAttribute('r','2.4');
+    hub.setAttribute('fill','rgba(255,255,255,0.85)');
+    svg.appendChild(hub);
+    giz.appendChild(svg);
+  }
+
+  // Auto-derive anatomical axes from the shared coordinates of the active specimen.
+  computeAxes(){
+    const { THREE } = this.L;
+    const shrew = this.getShrew(this.state.activeShrew);
+    if(!shrew || !shrew.verts.length || !this._gizEls) return;
+    const box = new THREE.Box3();
+    shrew.verts.forEach(v=>{
+      const c = v.geo.userData.center, h = v.geo.userData.size.clone().multiplyScalar(0.5);
+      box.expandByPoint(c.clone().sub(h)); box.expandByPoint(c.clone().add(h));
+    });
+    const size = box.getSize(new THREE.Vector3());
+    const ax = [size.x, size.y, size.z];
+    const e = [new THREE.Vector3(1,0,0), new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,1)];
+    const longI = ax.indexOf(Math.max(...ax));                 // cranial–caudal = longest axis
+    const first = shrew.verts[0].geo.userData.center;          // first-ordered (cranial) vertebra
+    const last = shrew.verts[shrew.verts.length-1].geo.userData.center;
+    const sign = (first.getComponent(longI) - last.getComponent(longI)) >= 0 ? 1 : -1;
+    const rem = [0,1,2].filter(i=>i!==longI);
+    const lrI = ax[rem[0]] >= ax[rem[1]] ? rem[0] : rem[1];     // transverse processes widen mediolateral
+    const dvI = lrI===rem[0] ? rem[1] : rem[0];
+    this._gizEls[0].dir = e[longI].clone().multiplyScalar(sign);
+    this._gizEls[1].dir = e[dvI].clone();
+    this._gizEls[2].dir = e[lrI].clone();
+    this._axes = { longI, dvI, lrI, sign };
+  }
+
+  updateGizmo(){
+    if(!this._gizEls || !this.three) return;
+    const cam = this.three.camera;
+    const q = cam.quaternion.clone().invert();
+    const cx=48, cy=48, R=17;
+    for(const g of this._gizEls){
+      if(!g.dir) continue;
+      const v = g.dir.clone().applyQuaternion(q);
+      g.line.setAttribute('x1',(cx-v.x*R).toFixed(1)); g.line.setAttribute('y1',(cy+v.y*R).toFixed(1));
+      g.line.setAttribute('x2',(cx+v.x*R).toFixed(1)); g.line.setAttribute('y2',(cy-v.y*R).toFixed(1));
+      g.tp.setAttribute('x',(cx+v.x*R*1.7).toFixed(1)); g.tp.setAttribute('y',(cy-v.y*R*1.7).toFixed(1));
+      g.tn.setAttribute('x',(cx-v.x*R*1.7).toFixed(1)); g.tn.setAttribute('y',(cy+v.y*R*1.7).toFixed(1));
+      const front = (v.z+1)/2;          // +axis end facing the viewer
+      const back = 1-front;             // −axis end facing the viewer
+      const op = f => (0.28+0.72*f).toFixed(2);
+      g.tp.setAttribute('opacity',op(front));
+      g.tn.setAttribute('opacity',op(back));
+      g.line.setAttribute('opacity',(0.4+0.4*Math.max(front,back)).toFixed(2));
+    }
+  }
+
+  // Live scale bar: physical mm per screen pixel at the focal plane (coords are in mm).
+  updateScale(){
+    const fill = this.scaleFillRef.current, lab = this.scaleLabelRef.current;
+    if(!fill || !lab || !this.three) return;
+    const { camera, controls, renderer } = this.three;
+    const d = camera.position.distanceTo(controls.target);
+    const vh = 2*d*Math.tan((camera.fov*Math.PI/180)/2);
+    if(!(vh>0)) return;
+    const pxPerMM = renderer.domElement.clientHeight / vh;
+    let mm = 150 / pxPerMM;
+    const pow = Math.pow(10, Math.floor(Math.log10(mm)));
+    const f = mm/pow, nice = f<1.5?1 : f<3.5?2 : f<7.5?5 : 10;
+    mm = nice*pow;
+    fill.style.width = (mm*pxPerMM).toFixed(1)+'px';
+    lab.textContent = (mm<1 ? mm.toFixed(mm<0.1?2:1) : String(Math.round(mm))) + ' mm';
+  }
+
+
+  // ---------- loading sources ----------
+  async loadInitial(){
+    // try a hosted manifest first; else build demo from the bundled sample
+    try {
+      const r = await fetch('models/manifest.json', {cache:'no-store'});
+      if(r.ok){ const list = await r.json(); await this.loadManifest(list); return; }
+    } catch(e){}
+    await this.buildDemo();
+  }
+
+  async loadManifest(list){
+    const { GLTFLoader, STLLoader } = this.L;
+    const files = Array.isArray(list) ? list : (list.files||[]);
+    this.setState({ loading:true, loadingMsg:`Loading 0 / ${files.length}…` });
+    const items = [];
+    let done = 0;
+    const load1 = async (entry)=>{
+      const url = typeof entry==='string' ? entry : entry.url;
+      const name = (typeof entry==='string' ? entry : (entry.name||entry.url)).split('/').pop();
+      const buf = await (await fetch(url)).arrayBuffer();
+      let geo;
+      if(/\.glb$/i.test(url)){
+        const gltf = await new Promise((rs,rj)=> new GLTFLoader().parse(buf,'',rs,rj));
+        let mesh; gltf.scene.traverse(o=>{ if(o.isMesh && !mesh) mesh=o; });
+        geo = this.finishGeo(mesh.geometry);
+      } else {
+        geo = this.prepGeo(new STLLoader().parse(buf));
+      }
+      items.push({ name, geo });
+      done++; if(done%4===0 || done===files.length) this.setState({ loadingMsg:`Loading ${done} / ${files.length}…` });
+    };
+    // load with a small concurrency pool for fast startup
+    const queue = [...files];
+    const pool = Math.min(10, files.length);
+    await Promise.all(Array.from({length:pool}, async ()=>{ while(queue.length){ await load1(queue.shift()); } }));
+    this._isDemo = false;
+    this.buildLibrary(items);
+  }
+
+  finishGeo(geo){ const { THREE } = this.L; const g=geo.clone(); if(!g.getAttribute('normal')) g.computeVertexNormals(); g.computeBoundingBox(); g.userData.center=g.boundingBox.getCenter(new THREE.Vector3()); g.userData.size=g.boundingBox.getSize(new THREE.Vector3()); return g; }
+
+  async filesToItems(fileList){
+    const { STLLoader, GLTFLoader } = this.L;
+    const arr = [...fileList].filter(f=>/\.(stl|glb)$/i.test(f.name));
+    const items = [];
+    for(let i=0;i<arr.length;i++){
+      const f = arr[i];
+      this.setState({ loadingMsg:`Processing ${i+1}/${arr.length} — ${f.name}` });
+      await new Promise(r=>requestAnimationFrame(r));
+      const buf = await f.arrayBuffer();
+      let geo;
+      if(/\.glb$/i.test(f.name)){
+        const gltf = await new Promise((rs,rj)=> new GLTFLoader().parse(buf,'',rs,rj));
+        let mesh; gltf.scene.traverse(o=>{ if(o.isMesh && !mesh) mesh=o; });
+        geo = mesh ? this.finishGeo(mesh.geometry) : null;
+      } else {
+        geo = this.prepGeo(new STLLoader().parse(buf));
+      }
+      if(geo) items.push({ name:f.name, geo });
+    }
+    return items;
+  }
+
+  async loadFiles(fileList){
+    this.setState({ loading:true, loadingMsg:'Reading files…' });
+    const items = await this.filesToItems(fileList);
+    if(!items.length){ this.setState({ loading:false }); return; }
+    this._isDemo = false;
+    this.buildLibrary(items);
+  }
+
+  // build a demo library from the single bundled sample by cloning + transforming
+  async buildDemo(){
+    const { THREE, STLLoader } = this.L;
+    this.setState({ loadingMsg:'Building sample atlas…' });
+    const buf = await (await fetch('uploads/files-1782246068378.stl')).arrayBuffer();
+    const baseRaw = new STLLoader().parse(buf);
+    // decimate once to a light base for cloning
+    let base = this.prepGeo(baseRaw);
+    // recentre the base mesh on its own centroid once
+    base.translate(-base.userData.center.x, -base.userData.center.y, -base.userData.center.z);
+    base.computeBoundingBox();
+    const bs = base.boundingBox.getSize(new THREE.Vector3());
+
+    const specs = [
+      { genus:'Scutisorex', species:'somereni', id:'148271', scale:1.0, robust:1.16,
+        codes:['T11','T12','T13','L1','L2','L3','L4'] },
+      { genus:'Crocidura', species:'goliath', id:'162144', scale:0.64, robust:0.9,
+        codes:['T10','T11','T12','L1','L2','L3'] }
+    ];
+
+    const items = [];
+    let seed = 7;
+    const rnd = ()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return (seed/0x7fffffff); };
+
+    specs.forEach(sp=>{
+      // build a clean horizontal column along +X, articulating with slight overlap
+      let x = 0, prevHalf = 0;
+      sp.codes.forEach((code,ci)=>{
+        const v = 0.93 + rnd()*0.14;                 // gentle per-vertebra size variation
+        const S = sp.scale * v;
+        const sx = S*sp.robust, sy = S*(0.96+rnd()*0.08), sz = S*(0.97+rnd()*0.06);
+        const halfW = (bs.x*sx)/2;
+        if(ci>0) x += prevHalf + halfW*0.72;          // overlap so they interlock
+        prevHalf = halfW;
+        const jy = (rnd()-0.5)*bs.y*0.06, jz = (rnd()-0.5)*bs.z*0.06;
+        const q = new THREE.Quaternion().setFromEuler(new THREE.Euler((rnd()-0.5)*0.12,(rnd()-0.5)*0.12,(rnd()-0.5)*0.10));
+        const m = new THREE.Matrix4().compose(new THREE.Vector3(x, jy, jz), q, new THREE.Vector3(sx,sy,sz));
+        const g = base.clone();
+        g.applyMatrix4(m);
+        g.computeVertexNormals();
+        g.computeBoundingBox();
+        g.userData.center = g.boundingBox.getCenter(new THREE.Vector3());
+        g.userData.size = g.boundingBox.getSize(new THREE.Vector3());
+        items.push({ name:`FMNH_${sp.id}_${sp.genus}_${sp.species}_${code}_smoothed.stl`, geo:g });
+      });
+    });
+    this._isDemo = true;
+    this.buildLibrary(items);
+  }
+
+  setMode(m){ this.setState({mode:m}); }
+  setShrew(k){ this.setState({activeShrew:k, selVert:0}); }
+  setCompare(k){ this.setState({compareShrew:k}); }
+  setSel(i){ this.setState({selVert:i}); this.scrollToActive(i); }
+  scrollToActive(i){
+    const idx = (i==null) ? this.state.selVert : i;
+    let frames = 0;
+    cancelAnimationFrame(this._scRaf);
+    // Re-renders recreate the chip row and reset scrollLeft, so re-assert the
+    // centered position over a handful of frames until it settles.
+    const step = ()=>{
+      const el = this.stripRef && this.stripRef.current;
+      const inner = el && el.firstElementChild;
+      const chip = inner && inner.children[Math.min(idx, inner.children.length-1)];
+      if(chip){
+        const er = el.getBoundingClientRect(), cr = chip.getBoundingClientRect();
+        const target = el.scrollLeft + (cr.left - er.left) - (el.clientWidth - cr.width)/2;
+        const max = el.scrollWidth - el.clientWidth;
+        el.scrollLeft = Math.max(0, Math.min(target, max));
+      }
+      if(++frames < 10) this._scRaf = requestAnimationFrame(step);
+    };
+    this._scRaf = requestAnimationFrame(step);
+  }
+  setTheme(t){ this.setState({theme:t}); }
+  toggleRotate(){ this.setState(st=>({autoRotate:!st.autoRotate})); }
+  toggleWire(){ this.setState(st=>({wireframe:!st.wireframe})); }
+
+  // The framework does not invoke setState callbacks, so reconcile the 3D
+  // scene against state here — renderVals runs on every state change.
+  syncScene(){
+    const s = this.state;
+    if(this._lm!==s.mode || this._las!==s.activeShrew || this._lcs!==s.compareShrew || this._lsv!==s.selVert){
+      this._lm=s.mode; this._las=s.activeShrew; this._lcs=s.compareShrew; this._lsv=s.selVert;
+      if(this.three && this.lib){ try { this.rebuild(); } catch(e){ console.error('rebuild',e); window.__rbErr=String(e&&e.stack||e); } }
+    }
+    if(this._lt!==s.theme){ this._lt=s.theme; if(this.three) this.applyTheme(s.theme); }
+    if(this._lw!==s.wireframe){ this._lw=s.wireframe; if(this.material) this.material.wireframe=s.wireframe; }
+    if(this._ltint!==s.tint){ this._ltint=s.tint; if(this.material) this.applyBoneColors(); }
+    if(this._lr!==s.autoRotate){ this._lr=s.autoRotate; if(this.three){ this.three.controls.autoRotate=s.autoRotate; this.three.controls.autoRotateSpeed=1.6; } }
+  }
+
+  renderVals(){
+    const s = this.state;
+    this.syncScene();
+    const modeDefs = [['single','One'],['pair','Pair'],['spine','Spine']];
+    const modes = modeDefs.map(([k,label])=>({ label, fn:()=>this.setMode(k),
+      bg: s.mode===k?'#e9a07a':'transparent', fg: s.mode===k?'#241a14':'rgba(255,255,255,0.82)' }));
+
+    const shrew = (this.lib||[]).find(x=>x.key===s.activeShrew);
+    const verts = shrew?shrew.verts:[];
+    const sel = Math.min(s.selVert, Math.max(0,verts.length-1));
+    const vertChips = verts.map((v,i)=>{
+      const active = (s.mode==='pair') ? (i===sel||i===(sel+1<verts.length?sel+1:sel-1)) : i===sel;
+      const rc = this.regionColor(v.region);
+      return { code:v.code, region:v.region, fn:()=>this.setSel(i),
+        bg: active?'rgba(233,160,122,0.92)':this.hexRgba(rc,0.14),
+        fg: active?'#241a14':'rgba(255,255,255,0.88)',
+        dot: rc };
+    });
+
+    const t = this.THEMES[s.theme];
+
+    // Spine map: project each vertebra's real centre onto cranial–caudal (x) and
+    // dorsoventral (y) axes for a true side-silhouette; highlight the active one(s).
+    let mapItems = [], mapActiveLabel = '';
+    if(verts.length && this._axes){
+      const { longI, dvI, sign } = this._axes;
+      const pts = verts.map(v=>({ x: v.geo.userData.center.getComponent(longI)*sign, y: v.geo.userData.center.getComponent(dvI), w: v.geo.userData.size.getComponent(longI), region:v.region }));
+      let xmin=Infinity,xmax=-Infinity,ymin=Infinity,ymax=-Infinity,wmax=0;
+      pts.forEach(p=>{ xmin=Math.min(xmin,p.x);xmax=Math.max(xmax,p.x);ymin=Math.min(ymin,p.y);ymax=Math.max(ymax,p.y);wmax=Math.max(wmax,p.w); });
+      const xr=(xmax-xmin)||1, yr=(ymax-ymin)||1;
+      const padX=6, usableX=100-padX*2, midY=11, ySpan=7;
+      const activeSet = new Set([sel]);
+      if(s.mode==='pair'){ activeSet.add(sel+1<verts.length?sel+1:sel-1); }
+      const bw = Math.max(1.6, Math.min(5, usableX/verts.length*0.7));
+      mapItems = pts.map((p,i)=>{
+        const cx = padX + (p.x-xmin)/xr*usableX;
+        const cy = midY - ((p.y-ymin)/yr-0.5)*2*ySpan;
+        const on = activeSet.has(i);
+        const h = on?13:8;
+        return { x:(cx-bw/2).toFixed(2), y:(cy-h/2).toFixed(2), w:bw.toFixed(2), h:h.toFixed(1),
+          fill: on?'#e9a07a':'rgba(255,255,255,0.32)',
+          stroke: on?'#f4c5a8':'transparent', sw: on?'0.6':'0' };
+      });
+      mapActiveLabel = s.mode==='pair'
+        ? `${verts[Math.min(...activeSet)].code}–${verts[Math.max(...activeSet)].code}`
+        : (verts[sel]?verts[sel].code:'');
+    }
+    const curV = verts[sel];
+    let captionMeta = '', captionName = '';
+    if(s.mode==='spine' && shrew){ captionMeta = `${shrew.verts.length} VERTEBRAE`; captionName = shrew.label; }
+    if(s.mode==='compare'){ const b=(this.lib||[]).find(x=>x.key===s.compareShrew); captionMeta = 'VERSUS'; captionName = `${shrew?shrew.label:''}  /  ${b?b.label:''}`; }
+
+    return {
+      canvasRef:this.canvasRef,
+      stripRef:this.stripRef,
+      scaleFillRef:this.scaleFillRef,
+      scaleLabelRef:this.scaleLabelRef,
+      gizmoRef:this.gizmoRef,
+      miniRef:this.miniRef,
+      loading:s.loading, loadingMsg:s.loadingMsg, dragging:s.dragging,
+      showLabels: !s.isMobile,
+      gizSize: s.isMobile ? '116px' : '200px',
+      cornerBottom: s.isMobile ? '150px' : '18px',
+      isDemo: s.isDemo,
+      stripMax: s.isMobile ? '82vw' : 'min(560px,52vw)',
+      modes,
+      activeShrew:s.activeShrew, compareShrew:s.compareShrew,
+      activeSpecies: shrew? shrew.label : 'Shrew Spine',
+      shrewOptions:(this.lib||[]).map(x=>({key:x.key,label:`${x.label}  (${x.verts.length})`})),
+      onShrewChange:e=>this.setShrew(e.target.value),
+      onCompareChange:e=>this.setCompare(e.target.value),
+      onToggleTint:()=>this.setState(st=>({tint:!st.tint})),
+      tintLabel: s.tint ? 'Colour' : 'Neutral',
+      tintSwatch: s.tint ? ('#'+(this.accentFor()||0x9a9a9a).toString(16).padStart(6,'0')) : '#cfc9bd',
+      showCompare: s.mode==='compare',
+      showVertStrip: (s.mode==='single'||s.mode==='pair') && verts.length>0,
+      onPrev:()=>this.setSel(Math.max(sel-1,0)),
+      onNext:()=>this.setSel(Math.min(sel+1,verts.length-1)),
+      prevDim: sel>0 ? 1 : 0.3,
+      nextDim: sel<verts.length-1 ? 1 : 0.3,
+      vertChips,
+      mapItems, mapActiveLabel,
+      showCaption: (s.mode==='spine'||s.mode==='compare') && !!captionName,
+      captionMeta, captionName,
+      onReset:()=>this.resetView(),
+      onToggleRotate:()=>this.toggleRotate(),
+      onToggleWire:()=>this.toggleWire(),
+      rotateBg: s.autoRotate?'#e9a07a':'rgba(19,18,24,0.62)', rotateFg: s.autoRotate?'#241a14':'#fff',
+      wireBg: s.wireframe?'#e9a07a':'rgba(19,18,24,0.62)', wireFg: s.wireframe?'#241a14':'#fff',
+      onDragOver:e=>{ e.preventDefault(); if(!s.dragging) this.setState({dragging:true}); },
+      onDragLeave:e=>{ e.preventDefault(); if(e.target===e.currentTarget) this.setState({dragging:false}); },
+      onDrop:e=>{ e.preventDefault(); this.setState({dragging:false}); if(e.dataTransfer.files.length) this.loadFiles(e.dataTransfer.files); },
+      onPick:e=>{ if(e.target.files.length) this.loadFiles(e.target.files); }
+    };
+  }
+}
+</script>
+</body>
+</html>
