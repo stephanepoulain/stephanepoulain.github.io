@@ -27,7 +27,7 @@
 </helmet>
 <div onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="position:fixed;inset:0;font-family:'Inter Tight',system-ui,sans-serif;color:#fff;user-select:none;-webkit-user-select:none">
 
-  <canvas ref="{{ canvasRef }}" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+  <canvas ref="{{ canvasRef }}" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none"></canvas>
 
   <!-- subtle vignette to focus the eye on the specimen -->
   <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 70% at 50% 46%, transparent 55%, rgba(0,0,0,0.28) 100%)"></div>
@@ -41,6 +41,14 @@
           <button onClick="{{ m.fn }}" style="font-family:'Inter Tight',sans-serif;font-size:16.5px;font-weight:600;padding:9px 17px;border-radius:9px;border:none;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};transition:background .15s,color .15s;white-space:nowrap">{{ m.label }}</button>
         </sc-for>
       </div>
+      <!-- spine region sub-control (Full / Thoracic / Lumbar) -->
+      <sc-if value="{{ showSpineRegion }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:4px;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:4px;width:max-content">
+          <sc-for list="{{ spineRegions }}" as="r" hint-placeholder-count="3">
+            <button onClick="{{ r.fn }}" style="font-family:'Inter Tight',sans-serif;font-size:13.5px;font-weight:600;padding:7px 13px;border-radius:9px;border:none;cursor:pointer;background:{{ r.bg }};color:{{ r.fg }};transition:background .15s;white-space:nowrap">{{ r.label }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
       <!-- specimen selector -->
       <div style="display:flex;align-items:center;gap:8px;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:6px 8px 6px 12px;width:max-content;max-width:70vw">
         <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:0.14em;color:rgba(255,255,255,0.5)">SPECIMEN</span>
@@ -51,10 +59,18 @@
         </select>
       </div>
       <!-- bone colour toggle: specimen accent vs neutral -->
+      <sc-if value="{{ showTintToggle }}" hint-placeholder-val="{{ false }}">
       <button onClick="{{ onToggleTint }}" title="Toggle specimen accent colour" style="display:flex;align-items:center;gap:8px;width:max-content;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:7px 12px;cursor:pointer;color:#fff;font-family:'Inter Tight',sans-serif;font-size:15px;font-weight:600">
         <span style="width:12px;height:12px;border-radius:50%;background:{{ tintSwatch }};box-shadow:0 0 0 1.5px rgba(255,255,255,0.25)"></span>
         <span style="letter-spacing:0.01em">{{ tintLabel }}</span>
       </button>
+      </sc-if>
+      <sc-if value="{{ showGhost }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ onToggleGhost }}" title="Show the rest of the spine, faded, for context" style="display:flex;align-items:center;gap:8px;width:max-content;background:{{ ghostBg }};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid {{ ghostBorder }};border-radius:13px;padding:7px 12px;cursor:pointer;color:{{ ghostFg }};font-family:'Inter Tight',sans-serif;font-size:15px;font-weight:600">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 7 4-14 3 7h4"/></svg>
+          <span style="letter-spacing:0.01em">Ghost spine</span>
+        </button>
+      </sc-if>
     </div>
 
     <div style="display:flex;gap:8px;pointer-events:auto"></div>
@@ -69,25 +85,23 @@
     <div ref="{{ scaleFillRef }}" style="width:150px;height:9px;border:1.5px solid rgba(255,255,255,0.85);border-top:none"></div>
   </div>
 
-  <!-- VERTEBRA STRIP (bottom-center) -->
+  <!-- BOTTOM: mini spine map + vertebra strip -->
   <sc-if value="{{ showVertStrip }}" hint-placeholder-val="{{ true }}">
-    <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:16px;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:auto;max-width:94vw">
-
-      <!-- mini spine map: real geometry rendered into an inset viewport -->
-      <div style="width:100%;display:flex;flex-direction:column;gap:4px;align-items:stretch">
-        <div ref="{{ miniRef }}" style="width:100%;height:96px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;pointer-events:none;overflow:hidden"></div>
-        <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:rgba(255,255,255,0.4)">
+    <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:{{ stripBottom }};width:{{ bottomW }};max-width:94vw;display:flex;flex-direction:column;align-items:stretch;gap:6px;pointer-events:auto">
+      <!-- mini spine map (real geometry, rendered into an inset viewport) -->
+      <div style="pointer-events:none;display:flex;flex-direction:column;gap:3px;align-items:stretch">
+        <div ref="{{ miniRef }}" style="width:100%;height:{{ miniH }};border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.18)"></div>
+        <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:rgba(255,255,255,0.45);padding:0 2px">
           <span>CRANIAL</span><span>CAUDAL</span>
         </div>
       </div>
-
       <!-- chip strip + arrows -->
-      <div style="display:flex;align-items:stretch;gap:8px;max-width:100%">
+      <div style="display:flex;align-items:stretch;gap:8px;width:100%">
         <button onClick="{{ onPrev }}" title="Previous vertebra" style="flex:none;width:50px;display:flex;align-items:center;justify-content:center;border-radius:13px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);color:#fff;opacity:{{ prevDim }}">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
-        <div class="vstrip" ref="{{ stripRef }}" style="max-width:{{ stripMax }};overflow-x:auto;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:8px">
-          <div style="display:flex;gap:5px;width:max-content">
+        <div class="vstrip" ref="{{ stripRef }}" style="flex:1;min-width:0;overflow-x:auto;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:8px">
+          <div style="display:flex;gap:5px;width:max-content;margin:0 auto">
             <sc-for list="{{ vertChips }}" as="v" hint-placeholder-count="7">
               <button onClick="{{ v.fn }}" title="{{ v.region }}" style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:50px;padding:8px 11px;border-radius:10px;border:none;cursor:pointer;background:{{ v.bg }};color:{{ v.fg }};transition:background .12s">
                 <span style="font-size:15px;font-weight:700;line-height:1">{{ v.code }}</span>
@@ -145,7 +159,7 @@ class Component extends DCLogic {
     mode:'single', theme:'dark',
     shrews:[], activeShrew:null, compareShrew:null,
     verts:[], selVert:0,
-    autoRotate:false, wireframe:false, dragging:false, isMobile:false, tint:true
+    autoRotate:false, wireframe:false, dragging:false, isMobile:false, tint:true, spineRegion:'full', ghost:false
   };
 
   checkMobile(){ const m = innerWidth < 640; if(m !== this.state.isMobile) this.setState({ isMobile:m }); }
@@ -221,6 +235,9 @@ class Component extends DCLogic {
     this.pairCranialMat = new THREE.MeshStandardMaterial({ color:0xede2cf, roughness:0.6, metalness:0.05, envMapIntensity:0.55 });
     this.pairCaudalMat  = new THREE.MeshStandardMaterial({ color:0xede2cf, roughness:0.62, metalness:0.05, envMapIntensity:0.55 });
     this.group = new THREE.Group(); scene.add(this.group);
+    // translucent "context" spine shown behind the focused vertebra(e) in One/Pair
+    this.ghostMat = new THREE.MeshStandardMaterial({ color:0xcdd2da, roughness:0.7, metalness:0.0, transparent:true, opacity:0.16, depthWrite:false });
+    this.contextGroup = new THREE.Group(); scene.add(this.contextGroup);
 
     this.three = { renderer, scene, camera, controls, hemi, key, rim, fill };
 
@@ -424,6 +441,7 @@ class Component extends DCLogic {
     const { THREE } = this.L;
     const g = this.group;
     while(g.children.length){ const c=g.children.pop(); g.remove(c); }
+    if(this.contextGroup){ while(this.contextGroup.children.length){ this.contextGroup.remove(this.contextGroup.children.pop()); } }
     g.position.set(0,0,0); g.scale.set(1,1,1);
 
     const mk = (geo)=>{ const m=new THREE.Mesh(geo, this.material); return m; };
@@ -434,8 +452,10 @@ class Component extends DCLogic {
     const box = new THREE.Box3();
 
     if(mode==='single'){
-      const v = verts[Math.min(this.state.selVert, verts.length-1)];
-      if(v){ const m=mk(v.geo); m.position.copy(v.geo.userData.center).multiplyScalar(-1); g.add(m); }
+      const i = Math.min(this.state.selVert, verts.length-1);
+      const v = verts[i];
+      if(v){ const off = v.geo.userData.center.clone().negate(); const m=mk(v.geo); m.position.copy(off); g.add(m);
+        if(this.state.ghost) this.addGhostContext(verts, off, [i]); }
     } else if(mode==='pair'){
       let i = Math.min(this.state.selVert, verts.length-1);
       let j = i+1 < verts.length ? i+1 : i-1;
@@ -450,8 +470,12 @@ class Component extends DCLogic {
         const m=new THREE.Mesh(v.geo, k===cranialK ? this.pairCranialMat : this.pairCaudalMat);
         m.position.copy(mid).multiplyScalar(-1); g.add(m);
       });
+      if(this.state.ghost) this.addGhostContext(verts, mid.clone().negate(), idxs);
     } else if(mode==='spine'){
-      verts.forEach((v,i)=>{ const m=new THREE.Mesh(v.geo, i%2===0 ? this.pairCranialMat : this.pairCaudalMat); m.userData.vi=i; g.add(m); });
+      const reg = this.state.spineRegion||'full';
+      const sv = (reg==='full') ? verts : verts.filter(v=> reg==='thoracic' ? v.region==='Thoracic' : v.region==='Lumbar');
+      const usev = sv.length ? sv : verts;
+      usev.forEach((v,i)=>{ const m=new THREE.Mesh(v.geo, i%2===0 ? this.pairCranialMat : this.pairCaudalMat); m.userData.vi=i; g.add(m); });
       g.updateMatrixWorld(true);
       box.setFromObject(g); const c=box.getCenter(new THREE.Vector3()); g.position.sub(c);
     } else if(mode==='compare'){
@@ -472,12 +496,31 @@ class Component extends DCLogic {
       && this._framedFor.mode === mode
       && this._framedFor.shrew === this.state.activeShrew
       && this._framedFor.cmp === this.state.compareShrew
+      && this._framedFor.reg === this.state.spineRegion
       && (mode==='single' || mode==='pair');
     if(!onlyStep){
-      this.frame(this._hasFramed);
+      // keep the user's angle only for One↔Pair (studying a vertebra in context);
+      // Spine & Compare always use the legible side-on default so the column reads.
+      const preserve = this._hasFramed && (mode==='single' || mode==='pair');
+      this.frame(preserve);
       this._hasFramed = true;
-      this._framedFor = { mode, shrew:this.state.activeShrew, cmp:this.state.compareShrew };
+      this._framedFor = { mode, shrew:this.state.activeShrew, cmp:this.state.compareShrew, reg:this.state.spineRegion };
     }
+  }
+
+  // Add the rest of the spine, translucent, at the same offset as the focus meshes
+  // (so it stays in true relative position). Not part of this.group, so framing
+  // stays tight on the focused vertebra(e).
+  addGhostContext(verts, off, excludeIdx){
+    const { THREE } = this.L;
+    const ex = new Set(excludeIdx);
+    this.contextGroup.position.set(0,0,0); this.contextGroup.scale.set(1,1,1);
+    verts.forEach((v,i)=>{
+      if(ex.has(i)) return;
+      const m = new THREE.Mesh(v.geo, this.ghostMat);
+      m.position.copy(off); m.renderOrder = 2;
+      this.contextGroup.add(m);
+    });
   }
 
   frame(preserveDir){
@@ -512,16 +555,21 @@ class Component extends DCLogic {
     const fovV = camera.fov*Math.PI/180, tanV = Math.tan(fovV/2);
     const distH = halfH / tanV;
     const distW = halfW / (tanV*aspect);
-    const margin = (mode==='single') ? 1.22 : 1.12;
+    const margin = (mode==='single') ? 1.34 : (mode==='pair' ? 1.28 : 1.12);
     const dist = (Math.max(distH, distW) + halfD) * margin;
 
-    controls.target.copy(center);
-    camera.position.copy(center).add(dir.clone().multiplyScalar(dist));
+    // Raise the model on screen (One/Pair) so the bottom map+strip don't cover it:
+    // aim the camera slightly below the model centre.
+    const offFrac = (mode==='single' || mode==='pair') ? 0.2 : 0;
+    const offY = dist * tanV * offFrac;
+    const tgt = center.clone().addScaledVector(up, -offY);
+    controls.target.copy(tgt);
+    camera.position.copy(tgt).add(dir.clone().multiplyScalar(dist));
     const radius = Math.max(halfW,halfH,halfD);
     camera.near = Math.max(dist/200,0.001); camera.far = dist*100; camera.updateProjectionMatrix();
     controls.minDistance = radius*0.4; controls.maxDistance = dist*5;
     controls.update();
-    this._home = { pos:camera.position.clone(), target:center.clone(), up:camera.up.clone() };
+    this._home = { pos:camera.position.clone(), target:tgt.clone(), up:camera.up.clone() };
   }
 
   // Build the miniature full-spine scene (real geometry) for the active specimen.
@@ -663,6 +711,20 @@ class Component extends DCLogic {
     giz.appendChild(svg);
   }
 
+  // Per-species override: the auto-detected dorsoventral/mediolateral axes are
+  // mislabelled for some specimens. swapDVLR swaps which axis is D/V vs L/R;
+  // dvSign/lrSign flip the +direction so the labels land on the right ends.
+  AXIS_OVERRIDES = {
+    goliath:  { swapDVLR:true, dvSign:1, lrSign:-1 },
+    somereni: { swapDVLR:true, dvSign:1, lrSign:-1 }
+  };
+  axisOverride(){
+    const k = (this.state.activeShrew||'').toLowerCase();
+    if(/goliath/.test(k))  return this.AXIS_OVERRIDES.goliath;
+    if(/somereni/.test(k)) return this.AXIS_OVERRIDES.somereni;
+    return null;
+  }
+
   // Auto-derive anatomical axes from the shared coordinates of the active specimen.
   computeAxes(){
     const { THREE } = this.L;
@@ -684,9 +746,14 @@ class Component extends DCLogic {
     const lrI = ax[rem[0]] >= ax[rem[1]] ? rem[0] : rem[1];     // transverse processes widen mediolateral
     const dvI = lrI===rem[0] ? rem[1] : rem[0];
     this._gizEls[0].dir = e[longI].clone().multiplyScalar(sign);
-    this._gizEls[1].dir = e[dvI].clone();
-    this._gizEls[2].dir = e[lrI].clone();
-    this._axes = { longI, dvI, lrI, sign };
+    const ov = this.axisOverride();
+    let dvA = dvI, lrA = lrI;
+    if(ov && ov.swapDVLR){ dvA = lrI; lrA = dvI; }
+    const dvSign = (ov && ov.dvSign!=null) ? ov.dvSign : 1;
+    const lrSign = (ov && ov.lrSign!=null) ? ov.lrSign : 1;
+    this._gizEls[1].dir = e[dvA].clone().multiplyScalar(dvSign);
+    this._gizEls[2].dir = e[lrA].clone().multiplyScalar(lrSign);
+    this._axes = { longI, dvI:dvA, lrI:lrA, sign, dvSign, lrSign };
   }
 
   updateGizmo(){
@@ -881,13 +948,14 @@ class Component extends DCLogic {
   // scene against state here — renderVals runs on every state change.
   syncScene(){
     const s = this.state;
-    if(this._lm!==s.mode || this._las!==s.activeShrew || this._lcs!==s.compareShrew || this._lsv!==s.selVert){
-      this._lm=s.mode; this._las=s.activeShrew; this._lcs=s.compareShrew; this._lsv=s.selVert;
+    if(this._lm!==s.mode || this._las!==s.activeShrew || this._lcs!==s.compareShrew || this._lsv!==s.selVert || this._lsr!==s.spineRegion){
+      this._lm=s.mode; this._las=s.activeShrew; this._lcs=s.compareShrew; this._lsv=s.selVert; this._lsr=s.spineRegion;
       if(this.three && this.lib){ try { this.rebuild(); } catch(e){ console.error('rebuild',e); window.__rbErr=String(e&&e.stack||e); } }
     }
     if(this._lt!==s.theme){ this._lt=s.theme; if(this.three) this.applyTheme(s.theme); }
     if(this._lw!==s.wireframe){ this._lw=s.wireframe; if(this.material) this.material.wireframe=s.wireframe; }
     if(this._ltint!==s.tint){ this._ltint=s.tint; if(this.material) this.applyBoneColors(); }
+    if(this._lghost!==s.ghost){ this._lghost=s.ghost; if(this.three && this.lib){ try { this.rebuild(); } catch(e){ console.error(e); } } }
     if(this._lr!==s.autoRotate){ this._lr=s.autoRotate; if(this.three){ this.three.controls.autoRotate=s.autoRotate; this.three.controls.autoRotateSpeed=1.6; } }
   }
 
@@ -897,6 +965,9 @@ class Component extends DCLogic {
     const modeDefs = [['single','One'],['pair','Pair'],['spine','Spine']];
     const modes = modeDefs.map(([k,label])=>({ label, fn:()=>this.setMode(k),
       bg: s.mode===k?'#e9a07a':'transparent', fg: s.mode===k?'#241a14':'rgba(255,255,255,0.82)' }));
+    const spineRegionDefs = [['full','Full'],['thoracic','Thoracic'],['lumbar','Lumbar']];
+    const spineRegions = spineRegionDefs.map(([k,label])=>({ label, fn:()=>this.setState({spineRegion:k}),
+      bg: (s.spineRegion||'full')===k?'#e9a07a':'transparent', fg: (s.spineRegion||'full')===k?'#241a14':'rgba(255,255,255,0.82)' }));
 
     const shrew = (this.lib||[]).find(x=>x.key===s.activeShrew);
     const verts = shrew?shrew.verts:[];
@@ -940,7 +1011,13 @@ class Component extends DCLogic {
     }
     const curV = verts[sel];
     let captionMeta = '', captionName = '';
-    if(s.mode==='spine' && shrew){ captionMeta = `${shrew.verts.length} VERTEBRAE`; captionName = shrew.label; }
+    if(s.mode==='spine' && shrew){
+      const reg = s.spineRegion||'full';
+      const fv = reg==='full' ? shrew.verts : shrew.verts.filter(v=> reg==='thoracic' ? v.region==='Thoracic' : v.region==='Lumbar');
+      const cnt = fv.length || shrew.verts.length;
+      captionMeta = `${cnt} ${reg==='full'?'VERTEBRAE':reg==='thoracic'?'THORACIC':'LUMBAR'}`;
+      captionName = shrew.label;
+    }
     if(s.mode==='compare'){ const b=(this.lib||[]).find(x=>x.key===s.compareShrew); captionMeta = 'VERSUS'; captionName = `${shrew?shrew.label:''}  /  ${b?b.label:''}`; }
 
     return {
@@ -952,11 +1029,16 @@ class Component extends DCLogic {
       miniRef:this.miniRef,
       loading:s.loading, loadingMsg:s.loadingMsg, dragging:s.dragging,
       showLabels: !s.isMobile,
-      gizSize: s.isMobile ? '116px' : '200px',
-      cornerBottom: s.isMobile ? '150px' : '18px',
+      gizSize: s.isMobile ? '104px' : '200px',
+      cornerBottom: '14px',
+      bottomW: s.isMobile ? '88vw' : 'min(560px,52vw)',
+      miniH: s.isMobile ? '70px' : '92px',
+      stripBottom: s.isMobile ? '124px' : '16px',
       isDemo: s.isDemo,
       stripMax: s.isMobile ? '82vw' : 'min(560px,52vw)',
       modes,
+      spineRegions,
+      showSpineRegion: s.mode==='spine',
       activeShrew:s.activeShrew, compareShrew:s.compareShrew,
       activeSpecies: shrew? shrew.label : 'Shrew Spine',
       shrewOptions:(this.lib||[]).map(x=>({key:x.key,label:`${x.label}  (${x.verts.length})`})),
@@ -966,6 +1048,12 @@ class Component extends DCLogic {
       tintLabel: s.tint ? 'Colour' : 'Neutral',
       tintSwatch: s.tint ? ('#'+(this.accentFor()||0x9a9a9a).toString(16).padStart(6,'0')) : '#cfc9bd',
       showCompare: s.mode==='compare',
+      showTintToggle: false,
+      showGhost: (s.mode==='single'||s.mode==='pair'),
+      onToggleGhost:()=>this.setState(st=>({ghost:!st.ghost})),
+      ghostBg: s.ghost ? '#e9a07a' : 'rgba(19,18,24,0.62)',
+      ghostFg: s.ghost ? '#241a14' : '#fff',
+      ghostBorder: s.ghost ? '#e9a07a' : 'rgba(255,255,255,0.08)',
       showVertStrip: (s.mode==='single'||s.mode==='pair') && verts.length>0,
       onPrev:()=>this.setSel(Math.max(sel-1,0)),
       onNext:()=>this.setSel(Math.min(sel+1,verts.length-1)),
@@ -973,7 +1061,7 @@ class Component extends DCLogic {
       nextDim: sel<verts.length-1 ? 1 : 0.3,
       vertChips,
       mapItems, mapActiveLabel,
-      showCaption: (s.mode==='spine'||s.mode==='compare') && !!captionName,
+      showCaption: false,
       captionMeta, captionName,
       onReset:()=>this.resetView(),
       onToggleRotate:()=>this.toggleRotate(),
