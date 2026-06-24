@@ -16,10 +16,10 @@ scholar:
 
   .research-cards {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1.5rem;
     margin-bottom: 1rem;
-    max-width: 70%;
+    max-width: 90%;
     margin-left: auto;
     margin-right: auto;
   }
@@ -49,6 +49,15 @@ scholar:
     transition: filter 0.2s ease;
   }
   .research-card:hover img { filter: brightness(1.05); }
+  /* Placeholder thumbnail (used until a real spine image is added) */
+  .research-card-thumb {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2a2933, var(--global-theme-color));
+    font-size: 2.6rem;
+  }
   .research-card-body {
     padding: 1rem 1.2rem 1.2rem;
     border-top: 3px solid var(--global-theme-color);
@@ -100,6 +109,13 @@ scholar:
       <span>▶ explore</span>
     </div>
   </a>
+  <a class="research-card" onclick="openSection('section-spine'); return false;" href="#section-spine">
+    <div class="research-card-thumb" aria-label="Spine biomechanics">🦴</div>
+    <div class="research-card-body">
+      <p>Spine Biomechanics</p>
+      <span>▶ explore</span>
+    </div>
+  </a>
 </div>
 
 <hr class="research-cards-divider">
@@ -110,21 +126,27 @@ function openSection(id) {
   el.open = true;
   document.getElementById(id).scrollIntoView({behavior: 'smooth', block: 'start'});
 }
+// Open a section directly when the page loads with its #hash (e.g. /research/#section-spine)
+window.addEventListener('DOMContentLoaded', function () {
+  if (!location.hash) return;
+  var sec = document.querySelector(location.hash);
+  if (!sec) return;
+  var d = sec.querySelector('details');
+  if (d) { d.open = true; sec.scrollIntoView({block: 'start'}); }
+});
 </script>
 
 <div id="section-elasto">
 {% details **Elastohydrodynamics and Adhesion** %}
 
-### Contactless adhesion of vibrating sheets
+### Contactless adhesion of actuated sheets
 
-A vibrating elastic sheet can adhere to surfaces to become a seemingly contactless suction cup. [David Colasante](https://www.youtube.com/watch?v=FiigvkedYRs) and [Weston-Dawkes et al.](https://advanced-onlinelibrary-wiley-com.ezproxy.uio.no/doi/full/10.1002/aisy.202100001) showed that such vibrating disks can lift objects up to tens of kilograms.
+When an elastic sheet is periodically actuated near a surface, fluid-structure interactions break time-reversal symmetry and generate a net attractive effect: the sheet adheres without contact and supports substantial loads. Such actuated disks can lift objects up to tens of kilograms. We combined asymptotic analysis and numerical simulations to derive the hovering height predicted by a purely viscous model. We then extended our lubrication framework to incorporate first-order effects of fluid inertia and compressibility, and showed how these weaken adhesion.
 
 <div style="display: flex; align-items: center; gap: 1.5rem;">
   <video src="/assets/img/research/lubribot_num1.webm" width="40%" loop muted playsinline></video>
   <p style="flex: 1; margin: 0; font-size: 0.85em;"><em style="color: var(--global-text-color-light);">An elastic sheet, periodically pushed and pulled at its center beneath a rigid wall, deforms and drives a viscous flow. The resulting pressure field (color) generates an effective net upward force, keeping the sheet levitating against gravity.</em></p>
 </div>
-
-Using numerical simulations and theoretical modeling, we have shown how fluid-structure interactions rectify periodic vibrations to produce adhesive forces. The effect originates from the coupling between viscous fluid flow and bending deformations of the sheet, and can be modulated by inertial or compressibility effects. Beyond suction cups, this is relevant for squeeze film and acoustic levitation, and locomotion.
 
 **Related publications:**
 - {% bibliography --query @*[key=Poulain2025_hovering] %}
@@ -132,9 +154,9 @@ Using numerical simulations and theoretical modeling, we have shown how fluid-st
 
 <br>
 
-### Contact and bonding of elastic sheets
+### Bonding of an elastic sheet
 
-We studied the dynamics of adhesion of an elastic sheet, modeling the interplay between bending, viscous fluid flow, and intermolecular forces. We derived the speed of the adhesion front and provided effective boundary conditions linking curvature and speed of adhesion. This work is relevant for biological processes and industrial applications such as wafer bonding.
+As an elastic sheet first touches a substrate, a contact front propagates outward, squeezing out the fluid trapped between them. We modeled the interplay between bending, viscous drainage, and adhesion forces to predict the front speed and shape — results relevant to biological adhesion and wafer bonding.
 
 **Related publications:**
 - {% bibliography --query @*[key=Poulain2022_sheets] %}
@@ -208,6 +230,26 @@ We characterized how spherical particles respond to cavitation bubbles in fluids
 
 **Related publications:**
 - {% bibliography --query @*[key=Poulain2015_cavitation] %}
+
+{% enddetails %}
+</div>
+
+<div id="section-spine">
+{% details **Spine Biomechanics** %}
+
+Shrews of the genus *Scutisorex* — the "hero shrews" — have the most robust and intricately interlocking vertebral column of any mammal: their lumbar vertebrae carry dense arrays of interdigitating tubercles that let the spine bear extraordinary loads for its size. I am studying how this geometry translates into mechanical function, combining micro-CT imaging with finite-element modelling and comparing *Scutisorex* against ordinary shrews.
+
+The interactive atlas below assembles micro-CT vertebrae from three specimens. Browse a single vertebra, an adjacent pair, the full column reassembled from each specimen's real scan coordinates, or compare two species side by side — it runs entirely in your browser.
+
+<div style="position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--global-divider-color); margin:1rem 0;">
+  <iframe src="/shrew-spine/Viewer.dc.html"
+          title="Shrew Spine Atlas — interactive 3D viewer"
+          loading="lazy" allow="fullscreen; xr-spatial-tracking" allowfullscreen
+          style="width:100%; height:520px; border:0; display:block; background:#252429;"></iframe>
+</div>
+<p style="text-align:center; margin:.3rem 0 0;">
+  <a href="/shrew-spine/" target="_blank" rel="noopener">Open full screen ↗</a>
+</p>
 
 {% enddetails %}
 </div>
