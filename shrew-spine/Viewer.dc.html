@@ -88,13 +88,6 @@
   <!-- BOTTOM: mini spine map + vertebra strip -->
   <sc-if value="{{ showVertStrip }}" hint-placeholder-val="{{ true }}">
     <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:{{ stripBottom }};width:{{ bottomW }};max-width:94vw;display:flex;flex-direction:column;align-items:stretch;gap:6px;pointer-events:auto">
-      <!-- mini spine map (real geometry, rendered into an inset viewport) -->
-      <div style="pointer-events:none;display:flex;flex-direction:column;gap:3px;align-items:stretch">
-        <div ref="{{ miniRef }}" style="width:100%;height:{{ miniH }};border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.18)"></div>
-        <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:rgba(255,255,255,0.45);padding:0 2px">
-          <span>CRANIAL</span><span>CAUDAL</span>
-        </div>
-      </div>
       <!-- chip strip + arrows -->
       <div style="display:flex;align-items:stretch;gap:8px;width:100%">
         <button onClick="{{ onPrev }}" title="Previous vertebra" style="flex:none;width:50px;display:flex;align-items:center;justify-content:center;border-radius:13px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);color:#fff;opacity:{{ prevDim }}">
@@ -207,6 +200,7 @@ class Component extends DCLogic {
     controls.rotateSpeed = 3.2;
     controls.zoomSpeed = 1.3;
     controls.panSpeed = 0.8;
+    controls.noPan = true;   // pinch = pure zoom (no midpoint drift), so the rotation centre stays put on touch
     controls.staticMoving = false;
     controls.dynamicDampingFactor = 0.05;
     controls.minDistance = 0.2;
@@ -292,7 +286,6 @@ class Component extends DCLogic {
       if(this.composer) this.composer.render(); else renderer.render(scene,camera);
       this.updateScale();
       this.updateGizmo();
-      this.renderMiniMap();
     };
     loop();
   }
@@ -437,7 +430,6 @@ class Component extends DCLogic {
     if(!this.three || !this.lib) return;
     this.computeAxes();
     this.applyBoneColors();
-    this.buildMiniSpine();
     const { THREE } = this.L;
     const g = this.group;
     while(g.children.length){ const c=g.children.pop(); g.remove(c); }
@@ -1026,13 +1018,11 @@ class Component extends DCLogic {
       scaleFillRef:this.scaleFillRef,
       scaleLabelRef:this.scaleLabelRef,
       gizmoRef:this.gizmoRef,
-      miniRef:this.miniRef,
       loading:s.loading, loadingMsg:s.loadingMsg, dragging:s.dragging,
       showLabels: !s.isMobile,
       gizSize: s.isMobile ? '104px' : '200px',
       cornerBottom: '14px',
       bottomW: s.isMobile ? '88vw' : 'min(560px,52vw)',
-      miniH: s.isMobile ? '70px' : '92px',
       stripBottom: s.isMobile ? '124px' : '16px',
       isDemo: s.isDemo,
       stripMax: s.isMobile ? '82vw' : 'min(560px,52vw)',
