@@ -37,26 +37,12 @@
     <div style="display:flex;flex-direction:column;gap:10px;pointer-events:auto">
       <!-- mode segmented -->
       <div style="display:flex;gap:4px;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:4px;width:max-content">
-        <sc-for list="{{ modes }}" as="m" hint-placeholder-count="4">
-          <button onClick="{{ m.fn }}" style="font-family:'Inter Tight',sans-serif;font-size:16.5px;font-weight:600;padding:9px 17px;border-radius:9px;border:none;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};transition:background .15s,color .15s;white-space:nowrap">{{ m.label }}</button>
+        <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
+          <button onClick="{{ m.fn }}" style="display:flex;flex-direction:column;align-items:center;gap:1px;font-family:'Inter Tight',sans-serif;padding:8px 16px;border-radius:9px;border:none;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};transition:background .15s,color .15s;white-space:nowrap">
+            <span style="font-size:16.5px;font-weight:700;line-height:1.1">{{ m.label }}</span>
+            <span style="font-size:11px;font-weight:500;opacity:0.72;line-height:1.1">{{ m.sub }}</span>
+          </button>
         </sc-for>
-      </div>
-      <!-- spine region sub-control (Full / Thoracic / Lumbar) -->
-      <sc-if value="{{ showSpineRegion }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;gap:4px;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:4px;width:max-content">
-          <sc-for list="{{ spineRegions }}" as="r" hint-placeholder-count="3">
-            <button onClick="{{ r.fn }}" style="font-family:'Inter Tight',sans-serif;font-size:13.5px;font-weight:600;padding:7px 13px;border-radius:9px;border:none;cursor:pointer;background:{{ r.bg }};color:{{ r.fg }};transition:background .15s;white-space:nowrap">{{ r.label }}</button>
-          </sc-for>
-        </div>
-      </sc-if>
-      <!-- specimen selector -->
-      <div style="display:flex;align-items:center;gap:8px;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:6px 8px 6px 12px;width:max-content;max-width:70vw">
-        <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:0.14em;color:rgba(255,255,255,0.5)">SPECIMEN</span>
-        <select class="glass" value="{{ activeShrew }}" onChange="{{ onShrewChange }}" style="font-family:'Newsreader','Inter Tight',serif;font-size:21px;font-weight:500;font-style:italic;color:#fff;background:transparent;border:none;outline:none;cursor:pointer;padding:2px 4px;max-width:56vw">
-          <sc-for list="{{ shrewOptions }}" as="o" hint-placeholder-count="2">
-            <option value="{{ o.key }}" style="color:#111;font-style:italic">{{ o.label }}</option>
-          </sc-for>
-        </select>
       </div>
       <!-- bone colour toggle: specimen accent vs neutral -->
       <sc-if value="{{ showTintToggle }}" hint-placeholder-val="{{ false }}">
@@ -65,12 +51,32 @@
         <span style="letter-spacing:0.01em">{{ tintLabel }}</span>
       </button>
       </sc-if>
+      <!-- spine region sub-control (Full / Thoracic / Lumbar) — same slot as Ghost -->
+      <sc-if value="{{ showSpineRegion }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:4px;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:4px;width:max-content">
+          <sc-for list="{{ spineRegions }}" as="r" hint-placeholder-count="3">
+            <button onClick="{{ r.fn }}" style="font-family:'Inter Tight',sans-serif;font-size:13.5px;font-weight:600;padding:7px 13px;border-radius:9px;border:none;cursor:pointer;background:{{ r.bg }};color:{{ r.fg }};transition:background .15s;white-space:nowrap">{{ r.label }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
       <sc-if value="{{ showGhost }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ onToggleGhost }}" title="Show the rest of the spine, faded, for context" style="display:flex;align-items:center;gap:8px;width:max-content;background:{{ ghostBg }};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid {{ ghostBorder }};border-radius:13px;padding:7px 12px;cursor:pointer;color:{{ ghostFg }};font-family:'Inter Tight',sans-serif;font-size:15px;font-weight:600">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 7 4-14 3 7h4"/></svg>
           <span style="letter-spacing:0.01em">Ghost spine</span>
         </button>
       </sc-if>
+      <!-- specimen selector: clickable cards (common name + scientific) — stable anchor at bottom -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;width:max-content;max-width:92vw">
+        <sc-for list="{{ specimenCards }}" as="c" hint-placeholder-count="3">
+          <button onClick="{{ c.fn }}" style="display:flex;align-items:center;gap:9px;cursor:pointer;text-align:left;background:{{ c.bg }};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1.5px solid {{ c.border }};border-radius:13px;padding:8px 13px 8px 11px;transition:border-color .15s,background .15s">
+            <span style="flex:none;width:11px;height:11px;border-radius:50%;background:{{ c.dot }};box-shadow:0 0 0 2px rgba(255,255,255,0.18)"></span>
+            <span style="display:flex;flex-direction:column;gap:1px;line-height:1.2">
+              <span style="font-family:'Inter Tight',sans-serif;font-size:14px;font-weight:700;color:{{ c.nameFg }};white-space:nowrap">{{ c.common }}</span>
+              <span style="font-family:'Newsreader','Inter Tight',serif;font-style:italic;font-size:12px;font-weight:500;color:{{ c.sciFg }};white-space:nowrap">{{ c.sci }}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
     </div>
 
     <div style="display:flex;gap:8px;pointer-events:auto"></div>
@@ -152,7 +158,7 @@ class Component extends DCLogic {
     mode:'single', theme:'dark',
     shrews:[], activeShrew:null, compareShrew:null,
     verts:[], selVert:0,
-    autoRotate:false, wireframe:false, dragging:false, isMobile:false, tint:true, spineRegion:'full', ghost:false
+    autoRotate:false, wireframe:false, dragging:false, isMobile:false, tint:true, spineRegion:'full', ghost:true
   };
 
   checkMobile(){ const m = innerWidth < 640; if(m !== this.state.isMobile) this.setState({ isMobile:m }); }
@@ -301,6 +307,19 @@ class Component extends DCLogic {
   }
 
   ACCENTS = { somereni:0xc0473a, goliath:0x3f63bf, thori:0x2f9257 };
+  COMMON = { somereni:'Hero Shrew', goliath:'Regular Shrew', thori:"Thor's Hero Shrew" };
+  commonName(key){
+    const k=(key||'').toLowerCase();
+    if(/somereni/.test(k)) return this.COMMON.somereni;
+    if(/goliath/.test(k))  return this.COMMON.goliath;
+    if(/thori/.test(k))    return this.COMMON.thori;
+    return '';
+  }
+  accentHexFor(key){
+    const k=(key||'').toLowerCase();
+    const n = /somereni/.test(k)?this.ACCENTS.somereni : /goliath/.test(k)?this.ACCENTS.goliath : /thori/.test(k)?this.ACCENTS.thori : 0x9aa0a6;
+    return '#'+n.toString(16).padStart(6,'0');
+  }
   accentFor(){
     const k = (this.state.activeShrew||'').toLowerCase();
     if(/somereni/.test(k)) return this.ACCENTS.somereni;
@@ -954,8 +973,8 @@ class Component extends DCLogic {
   renderVals(){
     const s = this.state;
     this.syncScene();
-    const modeDefs = [['single','One'],['pair','Pair'],['spine','Spine']];
-    const modes = modeDefs.map(([k,label])=>({ label, fn:()=>this.setMode(k),
+    const modeDefs = [['single','One','vertebra'],['pair','Pair','of vertebrae'],['spine','Spine','whole']];
+    const modes = modeDefs.map(([k,label,sub])=>({ label, sub, fn:()=>this.setMode(k),
       bg: s.mode===k?'#e9a07a':'transparent', fg: s.mode===k?'#241a14':'rgba(255,255,255,0.82)' }));
     const spineRegionDefs = [['full','Full'],['thoracic','Thoracic'],['lumbar','Lumbar']];
     const spineRegions = spineRegionDefs.map(([k,label])=>({ label, fn:()=>this.setState({spineRegion:k}),
@@ -1031,6 +1050,18 @@ class Component extends DCLogic {
       showSpineRegion: s.mode==='spine',
       activeShrew:s.activeShrew, compareShrew:s.compareShrew,
       activeSpecies: shrew? shrew.label : 'Shrew Spine',
+      specimenCards: (this.lib||[]).map(x=>{
+        const active = x.key===s.activeShrew;
+        const acc = this.accentHexFor(x.key);
+        const k = (x.key||'').toLowerCase();
+        const rank = /goliath/.test(k)?0 : /thori/.test(k)?1 : /somereni/.test(k)?2 : 3;
+        return { key:x.key, rank, common:this.commonName(x.key), sci:x.label,
+          fn:()=>this.setShrew(x.key), dot:acc,
+          bg: active ? 'rgba(40,34,30,0.86)' : 'rgba(19,18,24,0.62)',
+          border: active ? acc : 'rgba(255,255,255,0.08)',
+          nameFg: active ? '#fff' : 'rgba(255,255,255,0.86)',
+          sciFg: active ? 'rgba(255,255,255,0.62)' : 'rgba(255,255,255,0.42)' };
+      }).sort((a,b)=>a.rank-b.rank),
       shrewOptions:(this.lib||[]).map(x=>({key:x.key,label:`${x.label}  (${x.verts.length})`})),
       onShrewChange:e=>this.setShrew(e.target.value),
       onCompareChange:e=>this.setCompare(e.target.value),
