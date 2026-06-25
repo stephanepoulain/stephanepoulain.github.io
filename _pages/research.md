@@ -63,7 +63,18 @@ scholar:
     margin: 0;
     line-height: 1.4;
   }
-  .research-card-body span { display: none; }
+  .research-card-body span {
+    display: inline-block;
+    margin-top: 0.45rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--global-theme-color);
+    opacity: 0.75;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .research-card:hover .research-card-body span { opacity: 1; transform: translateY(2px); }
 
   details {
     border: none !important;
@@ -85,28 +96,28 @@ scholar:
     <img class="fit-contain" src="/assets/img/research/SS_dorsal.png?v=5" alt="Spine biomechanics">
     <div class="research-card-body">
       <p>Spine Biomechanics</p>
-      <span>▶ explore</span>
+      <span>Explore ↓</span>
     </div>
   </a>
   <a class="research-card" onclick="openSection('section-elasto'); return false;" href="#section-elasto">
     <img src="/assets/img/research/lubribot_frame.png" alt="Elastohydrodynamics">
     <div class="research-card-body">
       <p>Elastohydrodynamics and Adhesion</p>
-      <span>▶ explore</span>
+      <span>Explore ↓</span>
     </div>
   </a>
   <a class="research-card" onclick="openSection('section-bubbles'); return false;" href="#section-bubbles">
     <img src="/assets/img/publication_preview/Poulain2018_bubble.png" alt="Surface Bubbles">
     <div class="research-card-body">
       <p>Surface Bubbles and Aerosols</p>
-      <span>▶ explore</span>
+      <span>Explore ↓</span>
     </div>
   </a>
   <a class="research-card" onclick="openSection('section-droplets'); return false;" href="#section-droplets">
     <img src="/assets/img/publication_preview/Poulain2023_vibrations.png" alt="Droplets">
     <div class="research-card-body">
       <p>Droplets and Capillarity</p>
-      <span>▶ explore</span>
+      <span>Explore ↓</span>
     </div>
   </a>
 </div>

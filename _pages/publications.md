@@ -8,6 +8,8 @@ nav_order: 3
 ---
 <!-- _pages/publications.md -->
 
+A full list of my publications is below. See also my [Google Scholar](https://scholar.google.com/citations?user=AuIRHUAAAAAJ) and [ORCID](https://orcid.org/0000-0001-8946-4968) profiles. Most entries link to a PDF and the published version.
+
 <div class="publications">
 
 {% bibliography %}
