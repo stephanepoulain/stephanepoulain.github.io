@@ -819,12 +819,12 @@ class Component extends DCLogic {
   async loadManifest(list){
     const { GLTFLoader, STLLoader } = this.L;
     const files = Array.isArray(list) ? list : (list.files||[]);
-    this.setState({ loading:true, loadingMsg:`Loading 0 / ${files.length}…` });
+    this.setState({ loading:true, loadingMsg:`Loading…` });
     const items = [];
-    let done = 0;
+    const nameOf = (entry)=> (typeof entry==='string' ? entry : (entry.name||entry.url)).split('/').pop();
     const load1 = async (entry)=>{
       const url = typeof entry==='string' ? entry : entry.url;
-      const name = (typeof entry==='string' ? entry : (entry.name||entry.url)).split('/').pop();
+      const name = nameOf(entry);
       const buf = await (await fetch(url)).arrayBuffer();
       let geo;
       if(/\.glb$/i.test(url)){
@@ -835,14 +835,41 @@ class Component extends DCLogic {
         geo = this.prepGeo(new STLLoader().parse(buf));
       }
       items.push({ name, geo });
-      done++; if(done%4===0 || done===files.length) this.setState({ loadingMsg:`Loading ${done} / ${files.length}…` });
     };
-    // load with a small concurrency pool for fast startup
-    const queue = [...files];
-    const pool = Math.min(10, files.length);
-    await Promise.all(Array.from({length:pool}, async ()=>{ while(queue.length){ await load1(queue.shift()); } }));
+    const loadPool = async (group, onProgress)=>{
+      const queue = [...group]; let done = 0;
+      const pool = Math.min(10, queue.length || 1);
+      await Promise.all(Array.from({length:pool}, async ()=>{
+        while(queue.length){ await load1(queue.shift()); done++; if(onProgress) onProgress(done); }
+      }));
+    };
+    // Group models by specimen (from the filename) so the first specimen renders fast
+    // and the rest stream in the background — instead of blocking on all ~40 MB up front.
+    const groups = new Map();
+    for(const entry of files){
+      const key = this.parseName(nameOf(entry)).sciKey || nameOf(entry);
+      if(!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(entry);
+    }
+    // Order to match buildLibrary's sort, so the first group loaded is the default specimen.
+    const ordered = [...groups.values()].sort((a,b)=>
+      String(this.parseName(nameOf(a[0])).label||'').localeCompare(String(this.parseName(nameOf(b[0])).label||'')));
     this._isDemo = false;
+    if(ordered.length <= 1){
+      const all = ordered[0] || [...files];
+      await loadPool(all, (n)=> this.setState({ loadingMsg:`Loading ${n} / ${all.length}…` }));
+      this.buildLibrary(items);
+      return;
+    }
+    // 1) default specimen first → interactive as soon as it is ready
+    const first = ordered.shift();
+    await loadPool(first, (n)=> this.setState({ loadingMsg:`Loading ${n} / ${first.length}…` }));
     this.buildLibrary(items);
+    // 2) stream the remaining specimens, then rebuild the library with everything
+    (async ()=>{
+      for(const g of ordered){ await loadPool(g); }
+      this.buildLibrary(items);
+    })();
   }
 
   finishGeo(geo){ const { THREE } = this.L; const g=geo.clone(); if(!g.getAttribute('normal')) g.computeVertexNormals(); g.computeBoundingBox(); g.userData.center=g.boundingBox.getCenter(new THREE.Vector3()); g.userData.size=g.boundingBox.getSize(new THREE.Vector3()); return g; }
