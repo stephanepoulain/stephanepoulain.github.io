@@ -143,15 +143,21 @@ window.addEventListener('DOMContentLoaded', function () {
 <div id="section-spine">
 {% details **Spine Biomechanics** %}
 
-Shrews of the genus *Scutisorex* — the "hero shrews" — have the most robust and intricately interlocking vertebral column of any mammal: their lumbar vertebrae carry dense arrays of interdigitating tubercles that let the spine bear extraordinary loads for its size. I am studying how this geometry translates into mechanical function, combining micro-CT imaging with finite-element modelling and comparing *Scutisorex* against ordinary shrews.
+The "hero shrew" (*Scutisorex*) has the strangest spine of any mammal: its lumbar vertebrae interlock through dense arrays of bony tubercles. We use finite-element modelling to investigate the evolutionary advantage these tubercles might confer.
 
-The interactive atlas below assembles micro-CT vertebrae from three specimens. Browse a single vertebra, an adjacent pair, the full column reassembled from each specimen's real scan coordinates, or compare two species side by side — it runs entirely in your browser.
+The interactive animation below shows 3D micro-CT scans of three shrews: the hero shrew (*Scutisorex somereni*), Thor's hero shrew (*Scutisorex thori*), and a shrew with an ordinary spine, the goliath shrew (*Crocidura goliath*).
 
-<div style="position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--global-divider-color); margin:1rem 0;">
-  <iframe src="/shrew-spine/Viewer.dc.html"
-          title="Shrew Spine Atlas — interactive 3D viewer"
-          loading="lazy" allow="fullscreen; xr-spatial-tracking" allowfullscreen
-          style="width:100%; height:520px; border:0; display:block; background:#252429;"></iframe>
+<p style="font-size:0.8em; color:var(--global-text-color-light); margin:0.4rem 0 0;">Micro-CT scans courtesy of Stephanie Smith (Field Museum of Natural History, Chicago), from <a href="https://doi.org/10.1098/rspb.2020.0457">Smith &amp; Angielczyk (2020)</a>.</p>
+
+<div style="max-width:600px; margin:1rem auto;">
+  <div style="position:relative; width:100%; height:300px; overflow:hidden; border-radius:10px; border:1px solid var(--global-divider-color); background:#252429;">
+    <!-- iframe renders at 2x the panel size then scales down, so the viewer's UI looks
+         fullscreen-proportioned (smaller) in this embed while the standalone app is untouched -->
+    <iframe src="/shrew-spine/Viewer.dc.html"
+            title="Shrew Spine Atlas — interactive 3D viewer"
+            loading="lazy" allow="fullscreen; xr-spatial-tracking" allowfullscreen
+            style="position:absolute; top:0; left:0; width:200%; height:200%; transform:scale(0.5); transform-origin:top left; border:0; background:#252429;"></iframe>
+  </div>
 </div>
 <p style="text-align:center; margin:.3rem 0 0;">
   <a href="/shrew-spine/" target="_blank" rel="noopener">Open full screen ↗</a>
@@ -163,9 +169,9 @@ The interactive atlas below assembles micro-CT vertebrae from three specimens. B
 <div id="section-elasto">
 {% details **Elastohydrodynamics and Adhesion** %}
 
-### Contactless adhesion of actuated sheets
+### Contactless suction cups
 
-When an elastic sheet is periodically actuated near a surface, fluid-structure interactions break time-reversal symmetry and generate a net attractive effect: the sheet adheres without contact and supports substantial loads. Such actuated disks can lift objects up to tens of kilograms. We combined asymptotic analysis and numerical simulations to derive the hovering height predicted by a purely viscous model. We then extended our lubrication framework to incorporate first-order effects of fluid inertia and compressibility, and showed how these weaken adhesion.
+When a thin elastic sheet vibrates just below a ceiling, it can grip the surface in a state of seemingly contactless adhesion, an effect that can lift objects weighing from [a few hundred grams](https://doi.org/10.1002/aisy.202100001) up to [tens of kilograms](https://www.youtube.com/watch?v=ruDpMhlKy6M). We combine viscous lubrication theory and simulations to predict the sheet's hovering height, deformations and load capacity, and show how the air's compressibility and inertia weaken the adhesion.
 
 <div style="display: flex; align-items: center; gap: 1.5rem;">
   <video src="/assets/img/research/lubribot_num1.webm" width="40%" autoplay loop muted playsinline></video>
@@ -180,7 +186,7 @@ When an elastic sheet is periodically actuated near a surface, fluid-structure i
 
 ### Bonding of an elastic sheet
 
-As an elastic sheet first touches a substrate, a contact front propagates outward, squeezing out the fluid trapped between them. We modeled the interplay between bending, viscous drainage, and adhesion forces to predict the front speed and shape — results relevant to biological adhesion and wafer bonding.
+As an elastic sheet first touches a substrate, a contact front propagates, squeezing out the fluid trapped between them. We model the interplay between bending, viscous drainage, and adhesion to predict the front's speed and shape. This is central to silicon wafer bonding, where adhesion must be controlled precisely enough to join 300 mm-diameter wafers with nanometric accuracy.
 
 **Related publications:**
 - {% bibliography --query @*[key=Poulain2022_sheets] %}
