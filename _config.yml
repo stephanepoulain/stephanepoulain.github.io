@@ -58,7 +58,7 @@ max_width: 1000px
 # see https://schema.org/docs/faq.html for more information
 serve_og_meta: true # Include Open Graph meta tags in the HTML head
 serve_schema_org: true # Include Schema.org in the HTML head
-og_image: # The site-wide (default for all links) Open Graph preview image
+og_image: https://stephanepoulain.github.io/assets/img/og-image.jpg # The site-wide (default for all links) Open Graph preview image (absolute URL; output verbatim by _includes/metadata.liquid)
 
 # -----------------------------------------------------------------------------
 # Social integration
@@ -171,7 +171,7 @@ collections:
     permalink: /projects/:path/
 
 announcements:
-  enabled: true
+  enabled: false
   scrollable: true # adds a vertical scroll bar if there are more than 3 news items
   limit: 5 # leave blank to include all the news in the `_news` folder
 
@@ -218,6 +218,10 @@ exclude:
   - README.md
   - readme_preview/
   - vendor
+  # Internal / working files that must not be published
+  - mockup_*.html # local design mockups (Jekyll matches exclude entries with File.fnmatch)
+  - shrew-spine/README.md # repo notes incl. a deploy-handoff section
+  - shrew-spine/Optimize.dc.html # offline STL→GLB batch tool, not part of the viewer
 keep_files:
   - CNAME
   - .nojekyll
@@ -254,6 +258,7 @@ defaults:
 
 sass:
   style: compressed
+  sourcemap: never # jekyll-sass-converter 3.x: always | development | never; avoids shipping a ~1.75 MB main.css.map
 
 # -----------------------------------------------------------------------------
 # Jekyll Minifier
@@ -315,9 +320,9 @@ scholar:
 
 # Display different badges withs stats for your publications
 enable_publication_badges:
-  altmetric: true # Altmetric badge (https://www.altmetric.com/products/altmetric-badges/)
-  dimensions: true # Dimensions badge (https://badge.dimensions.ai/)
-  google_scholar: true # Google Scholar badge (https://scholar.google.com/intl/en/scholar/citations.html)
+  altmetric: false # Altmetric badge (https://www.altmetric.com/products/altmetric-badges/)
+  dimensions: false # Dimensions badge (https://badge.dimensions.ai/)
+  google_scholar: false # Google Scholar badge (https://scholar.google.com/intl/en/scholar/citations.html)
 
 # Filter out certain bibtex entry keywords used internally from the bib output
 filtered_bibtex_keywords:
@@ -360,7 +365,6 @@ imagemagick:
     - ".jpeg"
     - ".png"
     - ".tiff"
-    - ".gif"
   output_formats:
     webp: "-quality 85"
 
@@ -380,13 +384,13 @@ enable_google_analytics: false # enables google analytics
 enable_cronitor_analytics: false # enables cronitor RUM analytics
 enable_google_verification: false # enables google site verification
 enable_bing_verification: false # enables bing site verification
-enable_masonry: true # enables automatic project cards arrangement
-enable_math: true # enables math typesetting (uses MathJax)
+enable_masonry: false # enables automatic project cards arrangement
+enable_math: false # enables math typesetting (uses MathJax)
 enable_tooltips: false # enables automatic tooltip links generated for each section titles on pages and posts
 enable_darkmode: true # enables switching between light/dark modes
 enable_navbar_social: false # enables displaying social links in the navbar on the about page
 enable_project_categories: true # enables categorization of projects into multiple categories
-enable_medium_zoom: true # enables image zoom feature (as on medium.com)
+enable_medium_zoom: false # enables image zoom feature (as on medium.com)
 enable_progressbar: true # enables a horizontal progress bar linked to the vertical scroll position
 
 # -----------------------------------------------------------------------------

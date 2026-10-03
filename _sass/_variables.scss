@@ -9,14 +9,14 @@ $red-color-dark: #b71c1c !default;
 $orange-color: #f29105 !default;
 $blue-color: #0076df !default;
 $blue-color-dark: #00369f !default;
-$cyan-color: #2698ba !default;
+$cyan-color: #2ba8cd !default; // dark-theme accent; was #2698ba, lightened (same hue) for >= 4.6:1 on the dark panels
 $light-cyan-color: lighten($cyan-color, 25%);
 $green-color: #00ab37 !default;
 $green-color-lime: #b7d12a !default;
 $green-color-dark: #009f06 !default;
 $green-color-light: #ddffdd !default;
 $green-color-bright: #11d68b !default;
-$purple-color: #2d8a94 !default; // Slightly darker teal
+$purple-color: #27767f !default; // Light-theme accent (teal); was #2d8a94, darkened (same hue) for >= 4.6:1 on white and the research panels
 $light-purple-color: lighten($purple-color, 25%);
 $pink-color: #f92080 !default;
 $pink-color-light: #ffdddd !default;
@@ -26,6 +26,11 @@ $grey-color: #828282 !default;
 $grey-color-light: lighten($grey-color, 40%);
 $grey-color-dark: #1c1c1d;
 $grey-900: #212529;
+
+// Secondary text (captions, meta) — kept separate from $grey-color, which $grey-color-light derives from.
+// Both give >= 4.6:1 on the body and panel backgrounds of their theme.
+$text-color-light: #6e6e6e;
+$text-color-light-dark: #a0a0a0;
 
 $white-color: #ffffff !default;
 $black-color: #000000 !default;

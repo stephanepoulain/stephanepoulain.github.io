@@ -48,6 +48,17 @@ table.table a {
   }
 }
 
+// Links in running text are underlined so they don't rely on colour alone
+main p a:not(.btn) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
 .table-dark {
   background-color: transparent;
   &.table-bordered {
@@ -737,10 +748,8 @@ footer.sticky-bottom {
           }
         }
 
-        > em {
+        > strong {
           border-bottom: 1px solid var(--global-theme-color);
-          font-style: normal;
-          font-weight: 500;
           color: var(--global-theme-color);
         }
 
@@ -767,9 +776,14 @@ footer.sticky-bottom {
       }
 
       .links {
-        a.btn {
+        // Links (<a>) and panel toggles (<button>: Abs, Bib, Video) look the same
+        .btn {
+          -webkit-appearance: none;
+          appearance: none;
           color: var(--global-text-color);
+          background-color: transparent;
           border: 1px solid var(--global-text-color);
+          font-family: inherit;
           padding-left: 1rem;
           padding-right: 1rem;
           padding-top: 0.25rem;
@@ -779,6 +793,15 @@ footer.sticky-bottom {
           &:hover {
             color: var(--global-theme-color);
             border-color: var(--global-theme-color);
+          }
+
+          // MDB removes the focus outline on .btn; show one for keyboard focus only
+          // (kept out of the :hover rule so browsers without :focus-visible still get the hover style)
+          &:focus-visible {
+            color: var(--global-theme-color);
+            border-color: var(--global-theme-color);
+            outline: 2px solid var(--global-theme-color);
+            outline-offset: 2px;
           }
         }
       }
@@ -798,10 +821,13 @@ footer.sticky-bottom {
         }
       }
 
+      // Collapsed panels (abstract, bibtex, video) are also hidden from screen readers and the tab order.
+      // "transition: all" switches visibility at the end of the closing animation and at the start of the opening one.
       .hidden {
         font-size: 0.875rem;
         max-height: 0px;
         overflow: hidden;
+        visibility: hidden;
         text-align: justify;
         transition-property: 0.15s ease;
         -moz-transition: 0.15s ease;
@@ -823,6 +849,7 @@ footer.sticky-bottom {
 
       .hidden.open {
         max-height: 100em;
+        visibility: visible;
         transition-property: 0.15s ease;
         -moz-transition: 0.15s ease;
         -ms-transition: 0.15s ease;
@@ -1211,9 +1238,14 @@ details {
   }
   
   .author {
-    em {
-      font-weight: 500;
-      font-style: normal;
+    // Coauthor links (from _data/coauthors.yml), styled as on the publications page
+    a {
+      border-bottom: 1px dashed var(--global-theme-color);
+
+      &:hover {
+        border-bottom-style: solid;
+        text-decoration: none;
+      }
     }
   }
   
@@ -1241,7 +1273,7 @@ details {
       
       &:hover {
         background-color: var(--global-theme-color);
-        color: white;
+        color: var(--global-bg-color); // white on the light accent, near-black on the lighter dark-mode accent (both >= 5:1)
         text-decoration: none;
       }
     }

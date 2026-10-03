@@ -6,7 +6,7 @@
   --global-bg-color: #{$white-color};
   --global-code-bg-color: #{$code-bg-color-light};
   --global-text-color: #333;
-  --global-text-color-light: #{$grey-color};
+  --global-text-color-light: #{$text-color-light};
   --global-theme-color: #{$purple-color};
   --global-hover-color: #{$purple-color};
   --global-hover-text-color: #{$white-color};
@@ -56,7 +56,7 @@ html[data-theme="dark"] {
   --global-bg-color: #{$grey-color-dark};
   --global-code-bg-color: #{$code-bg-color-dark};
   --global-text-color: #{$grey-color-light};
-  --global-text-color-light: #{$grey-color-light};
+  --global-text-color-light: #{$text-color-light-dark};
   --global-theme-color: #{$cyan-color};
   --global-hover-color: #{$cyan-color};
   --global-hover-text-color: #{$white-color};
@@ -118,4 +118,32 @@ html[data-theme-setting="light"] {
     padding-top: 12px;
     display: block;
   }
+}
+
+/*******************************************************************************
+ * Skip link (first focusable element in <body>, see _layouts/default.liquid)
+ * Hidden by .sr-only until keyboard-focused, then shown above the fixed navbar.
+ ******************************************************************************/
+
+.sr-only.skip-link:focus {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1040; // above Bootstrap's .fixed-top navbar (1030)
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  overflow: visible;
+  clip: auto;
+  white-space: nowrap;
+  color: var(--global-theme-color);
+  background-color: var(--global-bg-color);
+  border: 2px solid var(--global-theme-color);
+  border-radius: 4px;
+}
+
+// When the skip link jumps to <main id="main">, keep it clear of the fixed navbar (56px) + .mt-5
+#main {
+  scroll-margin-top: calc(56px + 3rem);
 }

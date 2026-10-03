@@ -9,3 +9,5 @@ _site
 Gemfile.lock
 node_modules/
 vendor
+# Local working files: keep out of commits (`git add -A`) so they are never published
+mockup_*.html
