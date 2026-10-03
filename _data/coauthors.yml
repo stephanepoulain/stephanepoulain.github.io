@@ -1,34 +1,43 @@
-"adams":
-  - firstname: ["Edwin", "E.", "E. P.", "Edwin Plimpton"]
-    url: https://en.wikipedia.org/wiki/Edwin_Plimpton_Adams
+# Coauthor links used by _layouts/bib.liquid and _layouts/bibliography_short.liquid.
+# Key: last name as in papers.bib, lowercase, accents removed.
+# firstname: every spelling of the first name used in papers.bib (matched exactly).
 
-"podolsky":
-  - firstname: ["Boris", "B.", "B. Y.", "Boris Yakovlevich"]
-    url: https://en.wikipedia.org/wiki/Boris_Podolsky
+"bourouiba":
+  - firstname: ["Lydia", "L."]
+    url: https://meche.mit.edu/people/faculty/lbouro@mit.edu
 
-"rosen":
-  - firstname: ["Nathan", "N."]
-    url: https://en.wikipedia.org/wiki/Nathan_Rosen
+"brandt":
+  - firstname: ["Luca", "L."]
+    url: https://www.polito.it/en/staff?p=luca.brandt
 
-"bach":
-  - firstname: ["Johann Sebastian", "J. S."]
-    url: https://en.wikipedia.org/wiki/Johann_Sebastian_Bach
+"caballero":
+  - firstname: ["Rodrigo", "R."]
+    url: https://www.su.se/english/profiles/r/rcaba
 
-  - firstname: ["Carl Philipp Emanuel", "C. P. E."]
-    url: https://en.wikipedia.org/wiki/Carl_Philipp_Emanuel_Bach
+"carlson":
+  - firstname: ["Andreas", "A."]
+    url: https://acarlson-uio.github.io/
 
-"przibram":
-  - firstname: ["Karl"]
-    url: https://link.springer.com/article/10.1007/s00016-019-00242-z
+"jung":
+  - firstname: ["Sunghwan", "Sunny", "S."]
+    url: https://cals.cornell.edu/people/sunghwan-sunny-jung
 
-"schrodinger":
-  - firstname: ["Erwin"]
-    url: https://en.wikipedia.org/wiki/Erwin_Schr%C3%B6dinger
+"koch":
+  - firstname: ["Timo", "T."]
+    url: https://www.iws.uni-stuttgart.de/en/institute/team/Koch-00041/
 
-"lorentz":
-  - firstname: ["Hendrik Antoon"]
-    url: https://en.wikipedia.org/wiki/Hendrik_Lorentz
+"mahadevan":
+  - firstname: ["L.", "L", "Lakshminarayanan"]
+    url: https://softmath.seas.harvard.edu/
 
-"planck":
-  - firstname: ["Max"]
-    url: https://en.wikipedia.org/wiki/Max_Planck
+"mandre":
+  - firstname: ["Shreyas", "S."]
+    url: https://warwick.ac.uk/fac/sci/maths/people/staff/mandre/
+
+"sardina":
+  - firstname: ["Gaetano", "G."]
+    url: https://www.chalmers.se/en/persons/sardina/
+
+"villermaux":
+  - firstname: ["Emmanuel", "E."]
+    url: https://irphe.univ-amu.fr/en/user/391
