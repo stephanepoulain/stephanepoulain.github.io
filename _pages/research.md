@@ -33,12 +33,11 @@ scholar:
     border-radius: 10px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease;
     border: 1px solid var(--global-divider-color);
     text-decoration: none !important;
   }
   .research-card:hover {
-    transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   }
   .research-card img {
@@ -71,53 +70,69 @@ scholar:
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--global-theme-color);
-    opacity: 0.75;
-    transition: opacity 0.2s ease, transform 0.2s ease;
   }
-  .research-card:hover .research-card-body span { opacity: 1; transform: translateY(2px); }
+  /* Hover lift/nudge only for visitors who haven't asked for reduced motion */
+  @media (prefers-reduced-motion: no-preference) {
+    .research-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .research-card:hover { transform: translateY(-4px); }
+    .research-card-body span { transition: transform 0.2s ease; }
+    .research-card:hover .research-card-body span { transform: translateY(2px); }
+  }
 
-  details {
-    border: none !important;
-    border-left: 5px solid var(--global-theme-color) !important;
-    border-radius: 0 8px 8px 0 !important;
-    padding: 1.5rem 2rem !important;
-    margin-bottom: 1.5rem !important;
-    background-color: var(--global-code-bg-color) !important;
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  .research-section {
+    border-left: 5px solid var(--global-theme-color);
+    border-radius: 0 8px 8px 0;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    background-color: var(--global-code-bg-color);
   }
-  details:not([open]):hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
-    transform: translateY(-2px) !important;
+  .research-section > h2:first-child { font-size: 1.75rem; margin-top: 0; margin-bottom: 1rem; color: var(--global-theme-color); }
+  .research-section h3 { font-size: 1.35rem; }
+  /* Card clicks and #section-* links land with the heading below the fixed navbar */
+  [id^="section-"] { scroll-margin-top: calc(56px + 1rem); }
+
+  /* Video + caption rows: side by side on desktop, stacked on phones */
+  .media-row { display: flex; align-items: center; gap: 1.5rem; }
+  .media-row.media-row-top { align-items: flex-start; }
+  .media-row.media-row-narrow { margin: 2rem auto 1rem; width: 85%; }
+  .media-caption { flex: 1; margin: 0; font-size: 0.85em; }
+  @media (max-width: 576px) {
+    .media-row { flex-direction: column; align-items: stretch; gap: 1rem; }
+    .media-row.media-row-narrow { width: 100%; }
+    /* !important beats the inline flex/width styles, incl. the width gif-player.js copies onto .video-wrapper */
+    .media-row > * { flex: none !important; width: 100% !important; }
+    .media-row video { width: 100% !important; }
   }
-  details summary { font-size: 1.6rem !important; }
 </style>
 
 <div class="research-cards">
-  <a class="research-card" onclick="openSection('section-spine'); return false;" href="#section-spine">
-    <img class="fit-contain" src="/assets/img/research/SS_dorsal.png?v=5" alt="Spine biomechanics">
+  <a class="research-card" href="#section-spine">
+    <img class="fit-contain" src="/assets/img/research/card_spine.webp" alt="">
     <div class="research-card-body">
       <p>Spine Biomechanics</p>
-      <span>Explore ↓</span>
+      <span aria-hidden="true">Explore ↓</span>
     </div>
   </a>
-  <a class="research-card" onclick="openSection('section-elasto'); return false;" href="#section-elasto">
-    <img src="/assets/img/research/lubribot_frame.png" alt="Elastohydrodynamics">
+  <a class="research-card" href="#section-elasto">
+    <img src="/assets/img/research/card_elastohydrodynamics.webp" alt="">
     <div class="research-card-body">
       <p>Elastohydrodynamics and Adhesion</p>
-      <span>Explore ↓</span>
+      <span aria-hidden="true">Explore ↓</span>
     </div>
   </a>
-  <a class="research-card" onclick="openSection('section-bubbles'); return false;" href="#section-bubbles">
-    <img src="/assets/img/publication_preview/Poulain2018_bubble.png" alt="Surface Bubbles">
+  <a class="research-card" href="#section-bubbles">
+    <img src="/assets/img/research/card_bubbles.webp" alt="">
     <div class="research-card-body">
       <p>Surface Bubbles and Aerosols</p>
-      <span>Explore ↓</span>
+      <span aria-hidden="true">Explore ↓</span>
     </div>
   </a>
-  <a class="research-card" onclick="openSection('section-droplets'); return false;" href="#section-droplets">
-    <img src="/assets/img/publication_preview/Poulain2023_vibrations.png" alt="Droplets">
+  <a class="research-card" href="#section-droplets">
+    <img src="/assets/img/research/card_droplets.webp" alt="">
     <div class="research-card-body">
       <p>Droplets and Capillarity</p>
-      <span>Explore ↓</span>
+      <span aria-hidden="true">Explore ↓</span>
     </div>
   </a>
 </div>
@@ -125,23 +140,40 @@ scholar:
 <hr class="research-cards-divider">
 
 <script>
-function openSection(id) {
-  var el = document.getElementById(id).querySelector('details');
-  el.open = true;
-  document.getElementById(id).scrollIntoView({behavior: 'smooth', block: 'start'});
-}
-// Open a section directly when the page loads with its #hash (e.g. /research/#section-spine)
-window.addEventListener('DOMContentLoaded', function () {
-  if (!location.hash) return;
-  var sec = document.querySelector(location.hash);
-  if (!sec) return;
-  var d = sec.querySelector('details');
-  if (d) { d.open = true; sec.scrollIntoView({block: 'start'}); }
+// Sections are always visible: load the 3D viewer when it nears the viewport, and play videos
+// only while they are on screen (never automatically when "reduce motion" is set).
+document.addEventListener('DOMContentLoaded', function () {
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('iframe[data-src]').forEach(function (f) { f.src = f.getAttribute('data-src'); });
+    return;
+  }
+  var frames = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.src = e.target.getAttribute('data-src');
+      e.target.removeAttribute('data-src');
+      frames.unobserve(e.target);
+    });
+  }, { rootMargin: '300px 0px' });
+  document.querySelectorAll('iframe[data-src]').forEach(function (f) { frames.observe(f); });
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var vids = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        var p = e.target.play();
+        if (p && p.catch) p.catch(function () {});
+      } else {
+        e.target.pause();
+      }
+    });
+  }, { threshold: 0.25 });
+  document.querySelectorAll('.research-section video').forEach(function (v) { vids.observe(v); });
 });
 </script>
 
-<div id="section-spine">
-{% details **Spine Biomechanics** %}
+<div id="section-spine" class="research-section" markdown="1">
+
+## Spine Biomechanics
 
 The "hero shrew" (*Scutisorex*) has the strangest spine of any mammal: its lumbar vertebrae interlock through dense arrays of bony tubercles. We use finite-element modelling to investigate the evolutionary advantage these tubercles might confer.
 
@@ -153,7 +185,7 @@ The interactive animation below shows 3D micro-CT scans of three shrews: the her
   <div style="position:relative; width:100%; height:300px; overflow:hidden; border-radius:10px; border:1px solid var(--global-divider-color); background:#252429;">
     <!-- iframe renders at 2x the panel size then scales down, so the viewer's UI looks
          fullscreen-proportioned (smaller) in this embed while the standalone app is untouched -->
-    <iframe src="/shrew-spine/Viewer.dc.html"
+    <iframe data-src="/shrew-spine/Viewer.dc.html"
             title="Shrew Spine Atlas — interactive 3D viewer"
             loading="lazy" allow="fullscreen; xr-spatial-tracking" allowfullscreen
             style="position:absolute; top:0; left:0; width:200%; height:200%; transform:scale(0.5); transform-origin:top left; border:0; background:#252429;"></iframe>
@@ -163,19 +195,19 @@ The interactive animation below shows 3D micro-CT scans of three shrews: the her
   <a href="/shrew-spine/" target="_blank" rel="noopener">Open full screen ↗</a>
 </p>
 
-{% enddetails %}
 </div>
 
-<div id="section-elasto">
-{% details **Elastohydrodynamics and Adhesion** %}
+<div id="section-elasto" class="research-section" markdown="1">
+
+## Elastohydrodynamics and Adhesion
 
 ### Contactless suction cups
 
 When a thin elastic sheet vibrates just below a ceiling, it can grip the surface in a state of seemingly contactless adhesion, an effect that can lift objects weighing from [a few hundred grams](https://doi.org/10.1002/aisy.202100001) up to [tens of kilograms](https://www.youtube.com/watch?v=ruDpMhlKy6M). We combine viscous lubrication theory and simulations to predict the sheet's hovering height, deformations and load capacity, and show how the air's compressibility and inertia weaken the adhesion.
 
-<div style="display: flex; align-items: center; gap: 1.5rem;">
-  <video src="/assets/img/research/lubribot_num1.webm" width="40%" autoplay loop muted playsinline></video>
-  <p style="flex: 1; margin: 0; font-size: 0.85em;"><em style="color: var(--global-text-color-light);">An elastic sheet, periodically pushed and pulled at its center beneath a rigid wall, deforms and drives a viscous flow. The resulting pressure field (color) generates an effective net upward force, keeping the sheet levitating against gravity.</em></p>
+<div class="media-row">
+  <video src="/assets/img/research/lubribot_num1.webm" poster="/assets/img/research/lubribot_num1_poster.webp" width="40%" loop muted playsinline preload="none" style="aspect-ratio: 480 / 255;" aria-label="Simulation of an elastic sheet, pushed and pulled at its center beneath a rigid wall, levitating on the viscous flow it drives"></video>
+  <p class="media-caption"><em style="color: var(--global-text-color-light);">An elastic sheet, periodically pushed and pulled at its center beneath a rigid wall, deforms and drives a viscous flow. The resulting pressure field (color) generates an effective net upward force, keeping the sheet levitating against gravity.</em></p>
 </div>
 
 **Related publications:**
@@ -191,21 +223,21 @@ As an elastic sheet first touches a substrate, a contact front propagates, squee
 **Related publications:**
 - {% bibliography --query @*[key=Poulain2022_sheets] %}
 
-{% enddetails %}
 </div>
 
-<div id="section-bubbles">
-{% details **Surface Bubbles and Aerosols** %}
+<div id="section-bubbles" class="research-section" markdown="1">
+
+## Surface Bubbles and Aerosols
 
 Upon bursting, surface bubbles transfer chemicals and pathogens from water to the atmosphere. We investigated the thinning dynamics of bubbles, exploring the interplay between capillary drainage, Marangoni flows, and evaporation in pure water, salt water, soapy water, and bacteria-contaminated water. We also proposed a mechanism that rationalizes their burst.
 
-<div style="display: flex; gap: 1.5rem; align-items: flex-start;">
+<div class="media-row media-row-top">
   <div style="flex: 0 0 40%; text-align: center;">
-    <video src="/assets/img/research/bubble_mixing.webm" width="100%" autoplay loop muted playsinline></video>
+    <video src="/assets/img/research/bubble_mixing.webm" poster="/assets/img/research/bubble_mixing_poster.webp" width="100%" loop muted playsinline preload="none" style="aspect-ratio: 480 / 198;" aria-label="Mixing dynamics within a surface bubble at the air–water interface"></video>
     <p style="margin: 0.3rem auto 0; width: 80%; font-size: 0.85em;"><em style="color: var(--global-text-color-light);">Mixing dynamics within a surface bubble at the air–water interface.</em></p>
   </div>
   <div style="flex: 0 0 48%; text-align: center;">
-    <video src="/assets/img/research/bubble_burst.webm" width="100%" autoplay loop muted playsinline></video>
+    <video src="/assets/img/research/bubble_burst.webm" poster="/assets/img/research/bubble_burst_poster.webp" width="100%" loop muted playsinline preload="none" style="aspect-ratio: 480 / 167;" aria-label="A surface bubble bursting and ejecting aerosols into the atmosphere"></video>
     <p style="margin: 0.3rem auto 0; width: 80%; font-size: 0.85em;"><em style="color: var(--global-text-color-light);">A surface bubble bursting and ejecting aerosols into the atmosphere.</em></p>
   </div>
 </div>
@@ -219,11 +251,11 @@ We studied the fragmentation of bubbles into droplets, which, as they dry, becom
 - {% bibliography --query @*[key=Sardina2018_CCN] %}
 - {% bibliography --query @*[key=Wang2018_rim] %}
 
-{% enddetails %}
 </div>
 
-<div id="section-droplets">
-{% details **Droplets and Capillarity** %}
+<div id="section-droplets" class="research-section" markdown="1">
+
+## Droplets and Capillarity
 
 ### Droplet impact on soft substrates
 
@@ -238,9 +270,9 @@ We developed a three-phase lubrication model to understand how droplets settle o
 
 We experimentally studied the dynamics of water droplets on tilted, vertically oscillating fibers. Droplets exhibit different modes—harmonic pumping, subharmonic pumping, rocking, and swinging—depending on the oscillation frequency and amplitude, significantly affecting their sliding speed.
 
-<div style="display: flex; align-items: center; gap: 1.5rem; margin: 2rem auto 1rem; width: 85%;">
-  <video src="/assets/img/research/subharmo_rot.webm" width="45%" autoplay loop muted playsinline></video>
-  <p style="flex: 1; margin: 0; font-size: 0.85em;"><em style="color: var(--global-text-color-light);">A water droplet sliding on a fiber vibrating at 90 Hz exhibits a subharmonic response and sheds satellite droplets.</em></p>
+<div class="media-row media-row-narrow">
+  <video src="/assets/img/research/subharmo_rot.webm" poster="/assets/img/research/subharmo_rot_poster.webp" width="45%" loop muted playsinline preload="none" style="aspect-ratio: 734 / 471;" aria-label="A water droplet sliding on a fiber vibrating at 90 Hz, showing a subharmonic response and shedding satellite droplets"></video>
+  <p class="media-caption"><em style="color: var(--global-text-color-light);">A water droplet sliding on a fiber vibrating at 90 Hz exhibits a subharmonic response and sheds satellite droplets.</em></p>
 </div>
 
 <div style="position: relative; z-index: 1;" markdown="1">
@@ -256,10 +288,9 @@ We experimentally studied the dynamics of water droplets on tilted, vertically o
 
 We characterized how spherical particles respond to cavitation bubbles in fluids, showing that particle velocity depends on distance from the bubble as an inverse-fourth-power law.
 
-<img src="/assets/img/research/cavitation_experiment.png" width="60%" style="display: block; margin: 1rem auto;">
+<img src="/assets/img/research/cavitation_experiment_1100.webp" width="60%" style="display: block; margin: 1rem auto;" alt="High-speed image sequence: a cavitation bubble grows next to a sphere and pushes it away, then collapses and draws the sphere back toward it">
 
 **Related publications:**
 - {% bibliography --query @*[key=Poulain2015_cavitation] %}
 
-{% enddetails %}
 </div>
