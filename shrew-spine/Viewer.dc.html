@@ -1,8 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shrew Spine Atlas — Stéphane Poulain</title>
+<meta name="description" content="Explore 3D micro-CT scans of three shrew spines in your browser: the hero shrews Scutisorex somereni and S. thori, and the goliath shrew Crocidura goliath. View single vertebrae, pairs or the whole column.">
+<meta name="author" content="Stéphane Poulain">
+<meta name="theme-color" content="#252429">
+<link rel="canonical" href="https://stephanepoulain.github.io/shrew-spine/Viewer.dc.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Stéphane Poulain">
+<meta property="og:title" content="Shrew Spine Atlas">
+<meta property="og:description" content="Explore 3D micro-CT scans of three shrew spines in your browser: the hero shrews Scutisorex somereni and S. thori, and the goliath shrew Crocidura goliath.">
+<meta property="og:url" content="https://stephanepoulain.github.io/shrew-spine/Viewer.dc.html">
+<meta property="og:image" content="https://stephanepoulain.github.io/assets/img/og-atlas.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="3D render of a hero shrew spine (Scutisorex somereni) on a dark background, titled Shrew Spine Atlas">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Shrew Spine Atlas">
+<meta name="twitter:description" content="Explore 3D micro-CT scans of three shrew spines in your browser: the hero shrews Scutisorex somereni and S. thori, and the goliath shrew Crocidura goliath.">
+<meta name="twitter:image" content="https://stephanepoulain.github.io/assets/img/og-atlas.jpg">
+<meta name="twitter:image:alt" content="3D render of a hero shrew spine (Scutisorex somereni) on a dark background, titled Shrew Spine Atlas">
 <script src="./support.js"></script>
 </head>
 <body>
@@ -23,6 +42,8 @@
   .vstrip::-webkit-scrollbar{height:0}
   select.glass{appearance:none;-webkit-appearance:none}
   @keyframes spin{to{transform:rotate(360deg)}}
+  /* very narrow phones: slimmer mode buttons so the top-right link/info column clears the mode bar */
+  @media (max-width:359px){ .modebtn{padding-left:11px !important;padding-right:11px !important} }
 </style>
 </helmet>
 <div onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="position:fixed;inset:0;font-family:'Inter Tight',system-ui,sans-serif;color:#fff;user-select:none;-webkit-user-select:none">
@@ -38,7 +59,7 @@
       <!-- mode segmented -->
       <div style="display:flex;gap:4px;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:4px;width:max-content">
         <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
-          <button onClick="{{ m.fn }}" style="display:flex;flex-direction:column;align-items:center;gap:1px;font-family:'Inter Tight',sans-serif;padding:8px 16px;border-radius:9px;border:none;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};transition:background .15s,color .15s;white-space:nowrap">
+          <button class="modebtn" onClick="{{ m.fn }}" style="display:flex;flex-direction:column;align-items:center;gap:1px;font-family:'Inter Tight',sans-serif;padding:8px 16px;border-radius:9px;border:none;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};transition:background .15s,color .15s;white-space:nowrap">
             <span style="font-size:16.5px;font-weight:700;line-height:1.1">{{ m.label }}</span>
             <span style="font-size:11px;font-weight:500;opacity:0.72;line-height:1.1">{{ m.sub }}</span>
           </button>
@@ -126,11 +147,60 @@
     </div>
   </sc-if>
 
+  <!-- TOP-RIGHT: link back to the site (standalone only, hidden when embedded) + about/credits -->
+  <div style="position:absolute;top:14px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:calc(100vw - 32px);pointer-events:none">
+    <div style="display:flex;flex-direction:{{ cornerDir }};align-items:center;gap:8px;pointer-events:auto">
+      <sc-if value="{{ showSiteLink }}" hint-placeholder-val="{{ false }}">
+        <a href="/research/#section-spine" title="Stéphane Poulain · Research" aria-label="Back to Stéphane Poulain's research page" style-hover="color:#fff !important;border-color:rgba(255,255,255,0.2) !important" style="display:flex;align-items:center;justify-content:center;gap:7px;height:36px;min-width:36px;padding:{{ siteLinkPad }};box-sizing:border-box;border-radius:13px;background:rgba(19,18,24,0.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.78);text-decoration:none;font-family:'Inter Tight',sans-serif;font-size:13.5px;font-weight:600;white-space:nowrap;transition:color .15s,border-color .15s">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m0 0l6-6m-6 6l6 6"/></svg>
+          <sc-if value="{{ showSiteLabel }}" hint-placeholder-val="{{ true }}"><span>Stéphane Poulain · Research</span></sc-if>
+        </a>
+      </sc-if>
+      <button onClick="{{ onToggleInfo }}" title="About this atlas &amp; credits" aria-label="About this atlas and credits" aria-expanded="{{ infoExpanded }}" style="flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;padding:0;border-radius:13px;cursor:pointer;background:{{ infoBg }};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 2px 10px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid {{ infoBorder }};color:{{ infoFg }};transition:background .15s,color .15s">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11v6.5M12 6.6v.1"/></svg>
+      </button>
+    </div>
+    <sc-if value="{{ showInfo }}" hint-placeholder-val="{{ false }}">
+      <div role="dialog" aria-label="About the Shrew Spine Atlas" style="pointer-events:auto;width:340px;max-width:calc(100vw - 32px);max-height:calc(100vh - 110px);overflow-y:auto;box-sizing:border-box;background:rgba(19,18,24,0.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:14px 16px 15px;font-family:'Inter Tight',sans-serif;font-size:13.5px;line-height:1.45;color:rgba(255,255,255,0.8);user-select:text;-webkit-user-select:text">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+          <div style="font-size:17px;font-weight:700;line-height:1.2;color:#fff;padding-top:2px">Shrew Spine Atlas</div>
+          <button onClick="{{ onCloseInfo }}" title="Close" aria-label="Close" style="flex:none;width:26px;height:26px;margin:-3px -6px 0 0;display:flex;align-items:center;justify-content:center;padding:0;border:none;border-radius:8px;cursor:pointer;background:transparent;color:rgba(255,255,255,0.6)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <div style="margin-top:5px">Interactive 3D micro-CT scans of the spines of three shrews — browse one vertebra, a pair, or the whole column.</div>
+        <div style="margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.14em;color:rgba(255,255,255,0.45)">SPECIMENS</div>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:5px">
+          <sc-for list="{{ infoSpecimens }}" as="sp" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="flex:none;width:8px;height:8px;border-radius:50%;background:{{ sp.dot }};box-shadow:0 0 0 1.5px rgba(255,255,255,0.18)"></span>
+              <span style="flex:1;min-width:0;font-family:'Newsreader','Inter Tight',serif;font-style:italic;font-size:15px;font-weight:500;color:rgba(255,255,255,0.92);white-space:nowrap">{{ sp.sci }}</span>
+              <span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.04em;color:rgba(255,255,255,0.5);white-space:nowrap">{{ sp.fmnh }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.14em;color:rgba(255,255,255,0.45)">CREDITS</div>
+        <div style="margin-top:5px">Micro-CT scans courtesy of Stephanie Smith (Field Museum of Natural History, Chicago), from <a href="https://doi.org/10.1098/rspb.2020.0457" target="_blank" rel="noopener" style-hover="color:#fff !important" style="color:#f0b597;text-decoration:none">Smith &amp; Angielczyk (2020)</a>.</div>
+        <div style="margin-top:4px">Viewer by Stéphane Poulain.</div>
+        <sc-if value="{{ showSiteLink }}" hint-placeholder-val="{{ false }}">
+          <a href="/research/#section-spine" style-hover="color:#fff !important" style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;color:#f0b597;text-decoration:none;font-weight:600">Stéphane Poulain · Research
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m0 0l-6-6m6 6l-6 6"/></svg>
+          </a>
+        </sc-if>
+      </div>
+    </sc-if>
+  </div>
+
   <!-- LOADING -->
   <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
-    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#16151a;z-index:20">
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#16151a;z-index:20;padding:24px 16px;text-align:center">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;margin-bottom:6px">
+        <div style="font-family:'Inter Tight',sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.01em;line-height:1.15;color:#fff">Shrew Spine Atlas</div>
+        <div style="font-family:'Inter Tight',sans-serif;font-size:14.5px;font-weight:500;color:rgba(255,255,255,0.6)">3D micro-CT scans of shrew spines</div>
+      </div>
       <div style="width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,0.15);border-top-color:#e9a07a;animation:spin 0.8s linear infinite"></div>
       <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.06em;color:rgba(255,255,255,0.7)">{{ loadingMsg }}</div>
+      <div style="position:absolute;left:16px;right:16px;bottom:18px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.04em;line-height:1.6;color:rgba(255,255,255,0.42)">Micro-CT scans courtesy of Stephanie Smith (Field Museum, Chicago) · Viewer by Stéphane Poulain</div>
     </div>
   </sc-if>
 
@@ -158,7 +228,10 @@ class Component extends DCLogic {
     mode:'single', theme:'dark',
     shrews:[], activeShrew:null, compareShrew:null,
     verts:[], selVert:0,
-    autoRotate:false, wireframe:false, dragging:false, isMobile:false, tint:true, spineRegion:'full', ghost:true
+    autoRotate:false, wireframe:false, dragging:false, isMobile:false, tint:true, spineRegion:'full', ghost:true,
+    showInfo:false,
+    // embedded in an iframe (e.g. the /research/ page) → hide the link back to the site
+    embedded:(()=>{ try { return window.self !== window.top; } catch(e){ return true; } })()
   };
 
   checkMobile(){ const m = innerWidth < 640; if(m !== this.state.isMobile) this.setState({ isMobile:m }); }
@@ -262,6 +335,7 @@ class Component extends DCLogic {
     this._onKey = (e)=>{
       if(e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
       const k = e.key;
+      if(k==='Escape' && this.state.showInfo){ this.setState({ showInfo:false }); return; }
       if(k==='1'){ this.setMode('single'); }
       else if(k==='2'){ this.setMode('pair'); }
       else if(k==='3'){ this.setMode('spine'); }
@@ -1116,6 +1190,23 @@ class Component extends DCLogic {
       onToggleWire:()=>this.toggleWire(),
       rotateBg: s.autoRotate?'#e9a07a':'rgba(19,18,24,0.62)', rotateFg: s.autoRotate?'#241a14':'#fff',
       wireBg: s.wireframe?'#e9a07a':'rgba(19,18,24,0.62)', wireFg: s.wireframe?'#241a14':'#fff',
+      // top-right corner: link back to the site + about/credits panel
+      showSiteLink: !s.embedded,
+      showSiteLabel: !s.isMobile,
+      siteLinkPad: s.isMobile ? '0' : '0 14px 0 11px',
+      cornerDir: s.isMobile ? 'column' : 'row',
+      showInfo: s.showInfo,
+      infoExpanded: s.showInfo ? 'true' : 'false',
+      onToggleInfo:()=>this.setState(st=>({showInfo:!st.showInfo})),
+      onCloseInfo:()=>this.setState({showInfo:false}),
+      infoBg: s.showInfo ? '#e9a07a' : 'rgba(19,18,24,0.62)',
+      infoFg: s.showInfo ? '#241a14' : 'rgba(255,255,255,0.86)',
+      infoBorder: s.showInfo ? '#e9a07a' : 'rgba(255,255,255,0.08)',
+      infoSpecimens: [
+        { sci:'Scutisorex somereni', fmnh:'FMNH 148271', dot:this.accentHexFor('somereni') },
+        { sci:'Scutisorex thori',    fmnh:'FMNH 219669', dot:this.accentHexFor('thori') },
+        { sci:'Crocidura goliath',   fmnh:'FMNH 162144', dot:this.accentHexFor('goliath') }
+      ],
       onDragOver:e=>{ e.preventDefault(); if(!s.dragging) this.setState({dragging:true}); },
       onDragLeave:e=>{ e.preventDefault(); if(e.target===e.currentTarget) this.setState({dragging:false}); },
       onDrop:e=>{ e.preventDefault(); this.setState({dragging:false}); if(e.dataTransfer.files.length) this.loadFiles(e.dataTransfer.files); },
