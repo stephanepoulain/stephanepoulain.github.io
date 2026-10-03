@@ -8,17 +8,16 @@ on:
     paths:
       - "assets/**"
       - "_bibliography/**"
+      - "_sass/**"
+      - "_plugins/**"
+      - "Gemfile"
+      - "shrew-spine/**"
       - "**.html"
       - "**.js"
       - "**.liquid"
       - "**/*.md"
       - "**.yml"
       - "!.github/workflows/axe.yml"
-      - "!.github/workflows/broken-links.yml"
-      - "!.github/workflows/deploy-docker-tag.yml"
-      - "!.github/workflows/deploy-image.yml"
-      - "!.github/workflows/docker-slim.yml"
-      - "!.github/workflows/lighthouse-badger.yml"
       - "!.github/workflows/prettier.yml"
       - "!lighthouse_results/**"
       - "!CONTRIBUTING.md"
@@ -33,17 +32,16 @@ on:
     paths:
       - "assets/**"
       - "_bibliography/**"
+      - "_sass/**"
+      - "_plugins/**"
+      - "Gemfile"
+      - "shrew-spine/**"
       - "**.html"
       - "**.js"
       - "**.liquid"
       - "**/*.md"
       - "**.yml"
       - "!.github/workflows/axe.yml"
-      - "!.github/workflows/broken-links.yml"
-      - "!.github/workflows/deploy-docker-tag.yml"
-      - "!.github/workflows/deploy-image.yml"
-      - "!.github/workflows/docker-slim.yml"
-      - "!.github/workflows/lighthouse-badger.yml"
       - "!.github/workflows/prettier.yml"
       - "!lighthouse_results/**"
       - "!CONTRIBUTING.md"
@@ -59,22 +57,18 @@ permissions:
 jobs:
   deploy:
     # available images: https://github.com/actions/runner-images#available-images
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.2.2"
+          ruby-version: "3.3.4"
           bundler-cache: true
-      - name: Update _config.yml ⚙️
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          commitChange: false
-          valueFile: "_config.yml"
-          propertyPath: "giscus.repo"
-          value: ${{ github.repository }}
+      - name: Install ImageMagick 🖼️
+        run: |
+          sudo apt-get update && sudo apt-get install -y imagemagick
       - name: Install and Build 🔧
         run: |
           pip3 install --upgrade jupyter
